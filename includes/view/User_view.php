@@ -891,16 +891,16 @@ function User_Nick_render($user, $plain = false)
     if (is_array($user)) {
         $user = (new User())->forceFill($user);
     }
-
-    if ($plain) {
-        return sprintf('%s (%u)', $user->name, $user->id);
-    }
     
     $name = $user->name;
     if (config('enable_show_user_name')) {
         $name = $user->personalData->first_name.' '.$user->personalData->last_name;
     }
 
+    if ($plain) {
+        return sprintf('%s (%u)', $name, $user->id);
+    }
+    
     return render_profile_link(
         '<span class="icon-icon_angel"></span> ' . htmlspecialchars($name) . '</a>',
         $user->id,
