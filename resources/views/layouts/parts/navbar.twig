@@ -52,7 +52,11 @@
                             {{ menuUserHints() }}
 
                             {% if has_permission_to('user_myshifts') %}
-                                {{ elements.toolbar_item(user.name, url('users', {'action': 'view'}), 'users', 'icon icon-icon_angel') }}
+                                {% set username = user.name %}
+                                {% if(config('enable_show_user_name')) %}
+                                    {% set username = user.personalData.first_name ~ ' ' ~  user.personalData.last_name %}
+                                {% endif %}
+                                {{ _self.toolbar_item(username, url('users', {'action': 'view'}), 'users', 'icon icon-icon_angel') }}
                             {% endif %}
 
                             {% if has_permission_to('user_settings') or has_permission_to('logout') %}
