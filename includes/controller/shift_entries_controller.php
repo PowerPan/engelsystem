@@ -117,7 +117,12 @@ function shift_entry_create_controller_admin($shift, $angeltype): array
     $users = User::query()->orderBy('name')->get();
     $users_select = [];
     foreach ($users as $user) {
-        $users_select[$user->id] = $user->name;
+        $name = $user->name;
+        if (config('enable_show_user_name')) {
+            $name = $user->personalData->first_name.' '.$user->personalData->last_name;
+        }
+
+        $users_select[$user->id] = $name;
     }
 
     $angeltypes_select = [];
