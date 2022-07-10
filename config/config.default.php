@@ -261,6 +261,9 @@ return [
 
     // Enables prename and lastname
     'enable_user_name'        => (bool)env('ENABLE_USER_NAME', false),
+    
+    // Enables Showing prename and lastname instead of Username
+    'enable_show_user_name'   => (bool)env('ENABLE_SHOW_USER_NAME', false),
 
     // Enable displaying the pronoun fields
     'enable_pronoun'          => (bool)env('ENABLE_PRONOUN', true),
