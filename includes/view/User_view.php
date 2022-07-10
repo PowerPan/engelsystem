@@ -896,7 +896,7 @@ function User_Nick_render($user, $plain = false)
         return sprintf('%s (%u)', $user->name, $user->id);
     }
     
-    $name = $user->name
+    $name = $user->name;
     if (config('enable_show_user_name')) {
         $name = $user->personalData->first_name.' '.$user->personalData->last_name;
     }
