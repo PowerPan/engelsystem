@@ -1,5 +1,6 @@
 <?php
 
+use Engelsystem\Models\AngelType;
 use Engelsystem\Models\Room;
 use Engelsystem\ShiftsFilter;
 use Engelsystem\ShiftsFilterRenderer;
@@ -34,7 +35,7 @@ function room_controller(): array
     $shiftsFilter = new ShiftsFilter(
         true,
         [$room->id],
-        AngelType_ids()
+        AngelType::query()->get('id')->pluck('id')->toArray()
     );
     $selected_day = date('Y-m-d');
     if (!empty($days) && !in_array($selected_day, $days)) {
@@ -70,15 +71,11 @@ function rooms_controller(): array
         $action = 'list';
     }
 
-    switch ($action) {
-        case 'view':
-            return room_controller();
-        case 'list':
-        default:
-            throw_redirect(page_link_to('admin_rooms'));
-    }
-
-    return ['', ''];
+    return match ($action) {
+        'view'  => room_controller(),
+        'list'  => throw_redirect(page_link_to('admin_rooms')),
+        default => throw_redirect(page_link_to('admin_rooms')),
+    };
 }
 
 /**

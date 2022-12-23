@@ -86,7 +86,7 @@ function raw_output($output = '')
 function select_array($data, $key_name, $value_name)
 {
     if ($data instanceof Collection) {
-        return $data->mapToDictionary(function (BaseModel $model) use ($key_name, $value_name) {
+        return $data->mapWithKeys(function (BaseModel $model) use ($key_name, $value_name) {
             return [$model->{$key_name} => $model->{$value_name}];
         });
     }
@@ -186,6 +186,23 @@ function strip_request_item($name, $default_value = null)
 }
 
 /**
+ * Returns REQUEST value or default value (null) if not set.
+ *
+ * @param string $name
+ * @param string|null $default_value
+ * @return mixed|null
+ */
+function strip_request_tags($name, $default_value = null)
+{
+    $request = request();
+    if ($request->has($name)) {
+        return strip_tags($request->input($name));
+    }
+
+    return $default_value;
+}
+
+/**
  * Testet, ob der angegebene REQUEST Wert ein Integer ist, bzw.
  * eine ID sein könnte.
  *
@@ -244,7 +261,7 @@ function strip_item($item)
 function check_email($email)
 {
     // Convert the domain part from idn to ascii
-    if(substr_count($email, '@') == 1) {
+    if (substr_count($email, '@') == 1) {
         list($name, $domain) = explode('@', $email);
         $domain = idn_to_ascii($domain, IDNA_DEFAULT, INTL_IDNA_VARIANT_UTS46);
         $email = $name . '@' . $domain;

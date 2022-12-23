@@ -13,7 +13,7 @@ use Symfony\Component\HttpFoundation\Session\Session;
 class FaqControllerTest extends ControllerTest
 {
     /** @var array */
-    protected $data = [
+    protected array $data = [
         'question' => 'Foo?',
         'text'     => 'Bar!',
     ];
@@ -23,9 +23,9 @@ class FaqControllerTest extends ControllerTest
      * @covers \Engelsystem\Controllers\Admin\FaqController::edit
      * @covers \Engelsystem\Controllers\Admin\FaqController::showEdit
      */
-    public function testEdit()
+    public function testEdit(): void
     {
-        $this->request->attributes->set('id', 1);
+        $this->request->attributes->set('faq_id', 1);
         $this->response->expects($this->once())
             ->method('withView')
             ->willReturnCallback(function ($view, $data) {
@@ -48,7 +48,7 @@ class FaqControllerTest extends ControllerTest
     /**
      * @covers \Engelsystem\Controllers\Admin\FaqController::save
      */
-    public function testSaveCreateInvalid()
+    public function testSaveCreateInvalid(): void
     {
         /** @var FaqController $controller */
         $this->expectException(ValidationException::class);
@@ -61,9 +61,9 @@ class FaqControllerTest extends ControllerTest
     /**
      * @covers       \Engelsystem\Controllers\Admin\FaqController::save
      */
-    public function testSaveCreateEdit()
+    public function testSaveCreateEdit(): void
     {
-        $this->request->attributes->set('id', 2);
+        $this->request->attributes->set('faq_id', 2);
         $body = $this->data;
 
         $this->request = $this->request->withParsedBody($body);
@@ -93,9 +93,9 @@ class FaqControllerTest extends ControllerTest
     /**
      * @covers \Engelsystem\Controllers\Admin\FaqController::save
      */
-    public function testSavePreview()
+    public function testSavePreview(): void
     {
-        $this->request->attributes->set('id', 1);
+        $this->request->attributes->set('faq_id', 1);
         $this->request = $this->request->withParsedBody([
             'question' => 'New question',
             'text'     => 'New text',
@@ -130,9 +130,9 @@ class FaqControllerTest extends ControllerTest
     /**
      * @covers \Engelsystem\Controllers\Admin\FaqController::save
      */
-    public function testSaveDelete()
+    public function testSaveDelete(): void
     {
-        $this->request->attributes->set('id', 1);
+        $this->request->attributes->set('faq_id', 1);
         $this->request = $this->request->withParsedBody([
             'question' => '.',
             'text'     => '.',

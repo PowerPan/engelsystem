@@ -1,5 +1,14 @@
-const moment = require('moment');
-require('select2')
+import 'select2';
+import { formatDay, formatTime } from './date';
+import { ready } from './ready';
+
+/**
+ * @param {HTMLElement} element
+ */
+const triggerChange = (element) => {
+  const changeEvent = new Event('change');
+  element.dispatchEvent(changeEvent);
+};
 
 /**
  * Sets all checkboxes to the wanted state
@@ -8,131 +17,170 @@ require('select2')
  * @param {boolean} checked True if the checkboxes should be checked
  */
 global.checkAll = (id, checked) => {
-    $('#' + id + ' input[type="checkbox"]').each(function () {
-        this.checked = checked;
-    });
+  document.querySelectorAll(`#${id} input[type="checkbox"]`).forEach((element) => {
+    element.checked = checked;
+  });
 };
 
 /**
  * Sets the checkboxes according to the given type
  *
  * @param {string} id The elements ID
- * @param {list} shiftsList A list of numbers
+ * @param {int[]} shiftsList A list of numbers
  */
 global.checkOwnTypes = (id, shiftsList) => {
-    $('#' + id + ' input[type="checkbox"]').each(function () {
-        this.checked = $.inArray(parseInt(this.value), shiftsList) != -1;
-    });
+  document.querySelectorAll(`#${id} input[type="checkbox"]`).forEach((element) => {
+    const value = parseInt(element.value, 10);
+    element.checked = shiftsList.includes(value);
+  });
 };
 
 /**
- * @param {moment} date
- */
-global.formatDay = (date) => {
-    return date.format('YYYY-MM-DD');
-};
-
-/**
- * @param {moment} date
- */
-global.formatTime = (date) => {
-    return date.format('HH:mm');
-};
-
-/**
- * @param {moment} from
- * @param {moment} to
+ * Sets the values of the input fields with the IDs to from/to:
+ * - date portion of from → start_day
+ * - time portion of from → start_time
+ * - date portion of to → end_day
+ * - time portion of to → end_time
+ *
+ * @param {Date} from
+ * @param {Date} to
  */
 global.setInput = (from, to) => {
-    var fromDay = $('#start_day'), fromTime = $('#start_time'), toDay = $('#end_day'), toTime = $('#end_time');
+  const fromDay = document.getElementById('start_day');
+  const fromTime = document.getElementById('start_time');
+  const toDay = document.getElementById('end_day');
+  const toTime = document.getElementById('end_time');
 
-    fromDay.val(formatDay(from)).trigger('change');
-    fromTime.val(formatTime(from));
+  if (!fromDay || !fromTime || !toDay || !toTime) {
+    console.warn('cannot set input date because of missing field');
+    return;
+  }
 
-    toDay.val(formatDay(to)).trigger('change');
-    toTime.val(formatTime(to));
+  fromDay.value = formatDay(from);
+  triggerChange(fromDay);
+  fromTime.value = formatTime(from);
+
+  toDay.value = formatDay(to);
+  triggerChange(toDay);
+  toTime.value = formatTime(to);
 };
 
 global.setDay = (days) => {
-    days = days || 0;
+  days = days || 0;
 
-    var from = moment();
-    from.hours(0).minutes(0).seconds(0);
+  const from = new Date();
+  from.setHours(0, 0, 0, 0);
 
-    from.add(days, 'd');
+  // add days, Date handles the overflow
+  from.setDate(from.getDate() + days);
 
-    var to = from.clone();
-    to.hours(23).minutes(59);
+  const to = new Date(from);
+  to.setHours(23, 59);
 
-    setInput(from, to);
+  setInput(from, to);
 };
 
 global.setHours = (hours) => {
-    hours = hours || 1;
+  hours = hours || 1;
 
-    var from = moment();
-    var to = from.clone();
+  const from = new Date();
+  const to = new Date(from);
 
-    to.add(hours, 'h');
-    if (to < from) {
-        setInput(to, from);
-        return;
-    }
+  // convert hours to add to milliseconds (60 minutes * 60 seconds * 1000 for milliseconds)
+  const msToAdd = hours * 60 * 60 * 1000;
+  to.setTime(to.getTime() + msToAdd, 'h');
+  if (to < from) {
+    setInput(to, from);
+    return;
+  }
 
-    setInput(from, to);
+  setInput(from, to);
 };
 
-$(function () {
-    /**
-     * Disable every submit button after clicking (to prevent double-clicking)
-     */
-    $('form').submit(function (ev) {
-        $('input[type="submit"]').prop('readonly', true).addClass('disabled');
-        return true;
+ready(() => {
+  /**
+   * Disable every submit button after clicking (to prevent double-clicking)
+   */
+  document.querySelectorAll('form').forEach((formElement) => {
+    formElement.addEventListener('submit', () => {
+      document.querySelectorAll('input[type="submit"],button[type="submit"]').forEach((element) => {
+        element.readOnly = true;
+        element.classList.add('disabled');
+      });
     });
-
+  });
 });
 
-/*
+ready(() => {
+  document.querySelectorAll('.spinner-down').forEach((element) => {
+    const inputElement = document.getElementById(element.dataset.inputId);
+    if (inputElement) {
+      element.addEventListener('click', () => {
+        inputElement.stepDown();
+      });
+    }
+  });
+  document.querySelectorAll('.spinner-up').forEach((element) => {
+    const inputElement = document.getElementById(element.dataset.inputId);
+    if (inputElement) {
+      element.addEventListener('click', () => {
+        inputElement.stepUp();
+      });
+    }
+  });
+});
+
+/**
  * Button to set current time in time input fields.
  */
-$(function () {
-    $('.input-group.time').each(function () {
-        var elem = $(this);
-        elem.find('button').on('click', function () {
-            var input = elem.children('input').first();
-            input.val(moment().format('HH:mm'));
-            var daySelector = $('#' + input.attr('id').replace('time', 'day'));
-            var days = daySelector.children('option');
-            days.each(function (i) {
-                if ($(days[i]).val() === moment().format('YYYY-MM-DD')) {
-                    daySelector.val($(days[i]).val());
-                    return false;
-                }
-            });
-        });
+ready(() => {
+  document.querySelectorAll('.input-group.time').forEach((element) => {
+    const button = element.querySelector('button');
+    if (!button) return;
+
+    button.addEventListener('click', () => {
+      const now = new Date();
+      const input = element.querySelector('input');
+      if (!input) return;
+
+      input.value = formatTime(now);
+      const daySelector = document.getElementById(input.id.replace('time', 'day'));
+      if (!daySelector) return;
+
+      const dayElements = daySelector.querySelectorAll('option');
+      const yyyyMMDD = formatDay(now);
+      dayElements.forEach((dayElement) => {
+        if (dayElement.value === yyyyMMDD) {
+          daySelector.value = dayElement.value;
+          return false;
+        }
+      });
     });
+  });
 });
 
-$(function () {
-    $('select').select2({
-        theme: 'bootstrap-5',
-    });
-})
+ready(() => {
+  $('select').select2({
+    theme: 'bootstrap-5',
+    width: '100%',
+  });
+});
 
 /**
  * Show oauth buttons on welcome title click
  */
-$(function () {
-    $('#welcome-title').on('click', function () {
-        $('.btn-group.btn-group .btn.d-none').removeClass('d-none');
+ready(() => {
+  [
+    ['welcome-title', '.btn-group .btn.d-none'],
+    ['settings-title', '.user-settings .nav-item'],
+    ['oauth-settings-title', 'table tr.d-none'],
+  ].forEach(([id, selector]) => {
+    document.getElementById(id)?.addEventListener('click', () => {
+      document.querySelectorAll(selector).forEach((element) => {
+        element.classList.remove('d-none');
+      });
     });
-    $('#settings-title').on('click', function () {
-        $('.user-settings .nav-item').removeClass('d-none');
-    });
-    $('#oauth-settings-title').on('click', function () {
-        $('table tr.d-none').removeClass('d-none');
-    });
+  });
 });
 
 /**
@@ -140,24 +188,28 @@ $(function () {
  *
  * Uses DOMContentLoaded to prevent flickering
  */
-window.addEventListener('DOMContentLoaded', () => {
-    const filter = document.getElementById('collapseShiftsFilterSelect');
-    if (!filter || localStorage.getItem('collapseShiftsFilterSelect') !== 'hidden') {
-        return;
-    }
+ready(() => {
+  const filter = document.getElementById('collapseShiftsFilterSelect');
+  if (!filter || localStorage.getItem('collapseShiftsFilterSelect') !== 'hidden.bs.collapse') {
+    return;
+  }
 
-    filter.classList.remove('show');
+  filter.classList.remove('show');
 });
-$(() => {
-    if (typeof (localStorage) === 'undefined') {
-        return;
-    }
 
-    const onChange = (e) => {
-        localStorage.setItem('collapseShiftsFilterSelect', e.type);
-    };
+ready(() => {
+  if (typeof localStorage === 'undefined') {
+    return;
+  }
 
-    $('#collapseShiftsFilterSelect')
-        .on('hidden.bs.collapse', onChange)
-        .on('shown.bs.collapse', onChange);
+  /**
+   * @param {Event} event
+   */
+  const onChange = (event) => {
+    localStorage.setItem('collapseShiftsFilterSelect', event.type);
+  };
+
+  document.getElementById('collapseShiftsFilterSelect')?.addEventListener('hidden.bs.collapse', onChange);
+
+  document.getElementById('collapseShiftsFilterSelect')?.addEventListener('shown.bs.collapse', onChange);
 });

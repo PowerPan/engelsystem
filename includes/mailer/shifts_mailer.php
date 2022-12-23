@@ -30,19 +30,19 @@ function mail_shift_change($old_shift, $new_shift)
 
     if ($old_shift['start'] != $new_shift['start']) {
         $message .= sprintf(
-                __('* Shift Start changed from %s to %s'),
-                date('Y-m-d H:i', $old_shift['start']),
-                date('Y-m-d H:i', $new_shift['start'])
-            ) . "\n";
+            __('* Shift Start changed from %s to %s'),
+            date('Y-m-d H:i', $old_shift['start']),
+            date('Y-m-d H:i', $new_shift['start'])
+        ) . "\n";
         $noticeable_changes = true;
     }
 
     if ($old_shift['end'] != $new_shift['end']) {
         $message .= sprintf(
-                __('* Shift End changed from %s to %s'),
-                date('Y-m-d H:i', $old_shift['end']),
-                date('Y-m-d H:i', $new_shift['end'])
-            ) . "\n";
+            __('* Shift End changed from %s to %s'),
+            date('Y-m-d H:i', $old_shift['end']),
+            date('Y-m-d H:i', $new_shift['end'])
+        ) . "\n";
         $noticeable_changes = true;
     }
 
@@ -74,34 +74,6 @@ function mail_shift_change($old_shift, $new_shift)
                 $message,
                 true
             );
-        }
-    }
-}
-
-/**
- * @param array $shift
- */
-function mail_shift_delete($shift)
-{
-    $users = ShiftEntries_by_shift($shift['SID']);
-    $room = Room::find($shift['RID']);
-
-    $message = __('A Shift you are registered on was deleted:') . "\n";
-
-    $message .= $shift['name'] . "\n";
-    $message .= $shift['title'] . "\n";
-    $message .= date('Y-m-d H:i', $shift['start']) . ' - ' . date('H:i', $shift['end']) . "\n";
-    $message .= $room->name . "\n";
-
-    foreach ($users as $user) {
-        $user = (new User())->forceFill($user);
-        if ($user->settings->email_shiftinfo) {
-            $userMessage = $message;
-            if ($shift['start'] < time() && !$user['freeloaded']) {
-                $userMessage .= "\n" . __('Since the deleted shift was already done, we added a worklog entry instead, to keep your work hours correct.') . "\n";
-            }
-
-            engelsystem_email_to_user($user, __('Your Shift was deleted'), $userMessage, true);
         }
     }
 }

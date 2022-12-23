@@ -15,7 +15,7 @@ function user_atom()
 
     if (
         !$request->has('key')
-        || !preg_match('/^[\da-f]{32}$/', $request->input('key'))
+        || !$request->input('key')
         || empty($user)
     ) {
         throw new HttpForbidden('Missing or invalid key', ['content-type' => 'text/text']);
@@ -50,7 +50,7 @@ function make_atom_entries_from_news($news_entries)
 <title>' . config('app_name') . '</title>
 <id>' . $request->getHttpHost()
     . htmlspecialchars(preg_replace(
-        '#[&?]key=[a-f\d]{32}#',
+        '#[&?]key=[a-f\d]+#',
         '',
         $request->getRequestUri()
     ))
@@ -74,10 +74,10 @@ function make_atom_entry_from_news(News $news)
     <title>' . htmlspecialchars($news->title) . '</title>
     <link href="' . page_link_to('news/' . $news->id) . '"/>
     <id>' . preg_replace(
-            '#^https?://#',
-            '',
-            page_link_to('news/' . $news->id)
-        ) . '</id>
+        '#^https?://#',
+        '',
+        page_link_to('news/' . $news->id)
+    ) . '</id>
     <updated>' . $news->updated_at->format('Y-m-d\TH:i:sP') . '</updated>
     <summary type="html">' . htmlspecialchars($news->text) . '</summary>
 </entry>' . "\n";

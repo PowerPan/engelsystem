@@ -3,6 +3,7 @@
 namespace Engelsystem\Helpers;
 
 use Carbon\Carbon;
+use Engelsystem\Models\Group;
 use Engelsystem\Models\User\User;
 use Engelsystem\Models\User\User as UserRepository;
 use Psr\Http\Message\ServerRequestInterface;
@@ -10,42 +11,28 @@ use Symfony\Component\HttpFoundation\Session\Session;
 
 class Authenticator
 {
-    /** @var User */
-    protected $user = null;
-
-    /** @var ServerRequestInterface */
-    protected $request;
-
-    /** @var Session */
-    protected $session;
-
-    /** @var UserRepository */
-    protected $userRepository;
+    protected ?User $user = null;
 
     /** @var string[] */
-    protected $permissions;
+    protected array $permissions = [];
 
-    /** @var int|string|null */
-    protected $passwordAlgorithm = PASSWORD_DEFAULT;
+    protected int|string|null $passwordAlgorithm = PASSWORD_DEFAULT;
 
-    /**
-     * @param ServerRequestInterface $request
-     * @param Session                $session
-     * @param UserRepository         $userRepository
-     */
-    public function __construct(ServerRequestInterface $request, Session $session, UserRepository $userRepository)
-    {
-        $this->request = $request;
-        $this->session = $session;
-        $this->userRepository = $userRepository;
+    protected int $defaultRole = 20;
+
+    protected int $guestRole = 10;
+
+    public function __construct(
+        protected ServerRequestInterface $request,
+        protected Session $session,
+        protected UserRepository $userRepository
+    ) {
     }
 
     /**
      * Load the user from session
-     *
-     * @return User|null
      */
-    public function user()
+    public function user(): ?User
     {
         if ($this->user) {
             return $this->user;
@@ -70,11 +57,8 @@ class Authenticator
 
     /**
      * Get the user by his api key
-     *
-     * @param string $parameter
-     * @return User|null
      */
-    public function apiUser($parameter = 'api_key')
+    public function apiUser(string $parameter = 'api_key'): ?User
     {
         if ($this->user) {
             return $this->user;
@@ -85,6 +69,7 @@ class Authenticator
             return null;
         }
 
+        /** @var User|null $user */
         $user = $this
             ->userRepository
             ->whereApiKey($params[$parameter])
@@ -100,9 +85,8 @@ class Authenticator
 
     /**
      * @param string[]|string $abilities
-     * @return bool
      */
-    public function can($abilities): bool
+    public function can(array|string $abilities): bool
     {
         $abilities = (array)$abilities;
 
@@ -110,7 +94,7 @@ class Authenticator
             $user = $this->user();
 
             if ($user) {
-                $this->permissions = $this->getPermissionsByUser($user);
+                $this->permissions = $user->privileges->pluck('name')->toArray();
 
                 $user->last_login_at = new Carbon();
                 $user->save();
@@ -119,7 +103,9 @@ class Authenticator
             }
 
             if (empty($this->permissions)) {
-                $this->permissions = $this->getPermissionsByGroup(-10);
+                /** @var Group $group */
+                $group = Group::find($this->guestRole);
+                $this->permissions = $group->privileges->pluck('name')->toArray();
             }
         }
 
@@ -132,12 +118,7 @@ class Authenticator
         return true;
     }
 
-    /**
-     * @param string $login
-     * @param string $password
-     * @return User|null
-     */
-    public function authenticate(string $login, string $password)
+    public function authenticate(string $login, string $password): ?User
     {
         /** @var User $user */
         $user = $this->userRepository->whereName($login)->first();
@@ -156,12 +137,7 @@ class Authenticator
         return $user;
     }
 
-    /**
-     * @param User   $user
-     * @param string $password
-     * @return bool
-     */
-    public function verifyPassword(User $user, string $password)
+    public function verifyPassword(User $user, string $password): bool
     {
         if (!password_verify($password, $user->password)) {
             return false;
@@ -174,49 +150,39 @@ class Authenticator
         return true;
     }
 
-    /**
-     * @param User   $user
-     * @param string $password
-     */
-    public function setPassword(User $user, string $password)
+    public function setPassword(User $user, string $password): void
     {
         $user->password = password_hash($password, $this->passwordAlgorithm);
         $user->save();
     }
 
-    /**
-     * @return int|string|null
-     */
-    public function getPasswordAlgorithm()
+    public function getPasswordAlgorithm(): int|string|null
     {
         return $this->passwordAlgorithm;
     }
 
-    /**
-     * @param int|string|null $passwordAlgorithm
-     */
-    public function setPasswordAlgorithm($passwordAlgorithm)
+    public function setPasswordAlgorithm(int|string|null $passwordAlgorithm): void
     {
         $this->passwordAlgorithm = $passwordAlgorithm;
     }
 
-    /**
-     * @param User $user
-     * @return array
-     * @codeCoverageIgnore
-     */
-    protected function getPermissionsByUser($user)
+    public function getDefaultRole(): int
     {
-        return privileges_for_user($user->id);
+        return $this->defaultRole;
     }
 
-    /**
-     * @param int $groupId
-     * @return array
-     * @codeCoverageIgnore
-     */
-    protected function getPermissionsByGroup(int $groupId)
+    public function setDefaultRole(int $defaultRole): void
     {
-        return privileges_for_group($groupId);
+        $this->defaultRole = $defaultRole;
+    }
+
+    public function getGuestRole(): int
+    {
+        return $this->guestRole;
+    }
+
+    public function setGuestRole(int $guestRole): void
+    {
+        $this->guestRole = $guestRole;
     }
 }

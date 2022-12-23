@@ -48,20 +48,21 @@ function user_myshifts()
         ]);
     } elseif ($request->has('edit') && preg_match('/^\d+$/', $request->input('edit'))) {
         $shift_entry_id = $request->input('edit');
-        $shift = Db::selectOne('
+        $shift = Db::selectOne(
+            '
                 SELECT
                     `ShiftEntry`.`freeloaded`,
                     `ShiftEntry`.`freeload_comment`,
                     `ShiftEntry`.`Comment`,
                     `ShiftEntry`.`UID`,
-                    `ShiftTypes`.`name`,
+                    `shift_types`.`name`,
                     `Shifts`.*,
                     `rooms`.`name` as room_name,
-                    `AngelTypes`.`name` AS `angel_type`
+                    `angel_types`.`name` AS `angel_type`
                 FROM `ShiftEntry`
-                JOIN `AngelTypes` ON (`ShiftEntry`.`TID` = `AngelTypes`.`id`)
+                JOIN `angel_types` ON (`ShiftEntry`.`TID` = `angel_types`.`id`)
                 JOIN `Shifts` ON (`ShiftEntry`.`SID` = `Shifts`.`SID`)
-                JOIN `ShiftTypes` ON (`ShiftTypes`.`id` = `Shifts`.`shifttype_id`)
+                JOIN `shift_types` ON (`shift_types`.`id` = `Shifts`.`shifttype_id`)
                 JOIN `rooms` ON (`Shifts`.`RID` = `rooms`.`id`)
                 WHERE `ShiftEntry`.`id`=?
                 AND `UID`=?

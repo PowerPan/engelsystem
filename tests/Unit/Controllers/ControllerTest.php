@@ -20,29 +20,23 @@ abstract class ControllerTest extends TestCase
 {
     use HasDatabase;
 
-    /** @var Config */
-    protected $config;
+    protected Config $config;
 
-    /** @var TestLogger */
-    protected $log;
+    protected TestLogger $log;
 
-    /** @var Response|MockObject */
-    protected $response;
+    protected Response|MockObject $response;
 
-    /** @var Request */
-    protected $request;
+    protected Request $request;
 
-    /** @var Session */
-    protected $session;
+    protected Session $session;
 
     /**
-     * @param string      $value
-     * @param string|null $message
+     * @param string|null $type
      */
-    protected function assertHasNotification(string $value, string $message = null)
+    protected function assertHasNotification(string $value, string $type = 'messages'): void
     {
-        $messages = $this->session->get('messages', []);
-        $this->assertTrue(in_array($value, $messages), $message ?: 'Session does not contain message "' . $value . '"');
+        $messages = $this->session->get($type, []);
+        $this->assertTrue(in_array($value, $messages));
     }
 
     /**

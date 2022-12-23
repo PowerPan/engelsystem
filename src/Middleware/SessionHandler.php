@@ -11,35 +11,20 @@ use Symfony\Component\HttpFoundation\Session\Storage\SessionStorageInterface;
 
 class SessionHandler implements MiddlewareInterface
 {
-    /** @var SessionStorageInterface */
-    protected $session;
-
-    /** @var string[] */
-    protected $paths = [];
-
-    /**
-     * @param SessionStorageInterface $session
-     * @param array                   $paths
-     */
-    public function __construct(SessionStorageInterface $session, array $paths = [])
+    public function __construct(protected SessionStorageInterface $session, protected array $paths = [])
     {
-        $this->paths = $paths;
-        $this->session = $session;
     }
 
-    /**
-     * @param ServerRequestInterface  $request
-     * @param RequestHandlerInterface $handler
-     * @return ResponseInterface
-     */
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
+        $requestPath = $request->getAttribute('route-request-path');
+
         $return = $handler->handle($request);
 
         $cookies = $request->getCookieParams();
         if (
             $this->session instanceof NativeSessionStorage
-            && in_array($request->getAttribute('route-request-path'), $this->paths)
+            && in_array($requestPath, $this->paths)
             && !isset($cookies[$this->session->getName()])
         ) {
             $this->destroyNative();
@@ -49,10 +34,9 @@ class SessionHandler implements MiddlewareInterface
     }
 
     /**
-     * @return bool
      * @codeCoverageIgnore
      */
-    protected function destroyNative()
+    protected function destroyNative(): bool
     {
         return session_destroy();
     }

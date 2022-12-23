@@ -1,0 +1,18 @@
+{
+  "parser": "@babel/eslint-parser",
+  "extends": [ "plugin:editorconfig/all" ],
+  "plugins": [ "editorconfig" ],
+  "rules": {
+    "function-paren-newline": "error",
+    "prefer-arrow-callback": "error",
+    "prefer-template": "error",
+    "no-var": "error",
+    "quotes": [
+      "error",
+      "single",
+      {
+        "avoidEscape": true
+      }
+    ]
+  }
+}

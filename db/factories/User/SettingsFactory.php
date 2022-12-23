@@ -8,12 +8,9 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 class SettingsFactory extends Factory
 {
     /** @var string */
-    protected $model = Settings::class;
+    protected $model = Settings::class; // phpcs:ignore
 
-    /**
-     * @return array
-     */
-    public function definition()
+    public function definition(): array
     {
         return [
             'language'        => $this->faker->locale(),
@@ -22,6 +19,7 @@ class SettingsFactory extends Factory
             'email_goody'     => $this->faker->boolean(),
             'email_shiftinfo' => $this->faker->boolean(),
             'email_news'      => $this->faker->boolean(),
+            'mobile_show'     => $this->faker->boolean(),
         ];
     }
 }

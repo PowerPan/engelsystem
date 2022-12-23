@@ -1,6 +1,6 @@
 <?php
 
-use Engelsystem\Database\Db;
+use Engelsystem\Models\AngelType;
 use Engelsystem\Models\User\User;
 use Illuminate\Database\Query\JoinClause;
 
@@ -24,16 +24,17 @@ function admin_free()
         $search = strip_request_item('search');
     }
 
-    $angel_types_source = Db::select('SELECT `id`, `name` FROM `AngelTypes` ORDER BY `name`');
+    $angel_types_source = AngelType::all(['id', 'name']);
     $angel_types = [
         '' => __('All')
     ];
     foreach ($angel_types_source as $angel_type) {
-        $angel_types[$angel_type['id']] = $angel_type['name'];
+        $angel_types[$angel_type->id] = $angel_type->name;
     }
 
     $angelType = $request->input('angeltype', '');
 
+    /** @var User[] $users */
     $users = [];
     if ($request->has('submit')) {
         $query = User::with('personalData')
@@ -52,17 +53,17 @@ function admin_free()
             ->groupBy('users.id');
 
         if (!empty($angelType)) {
-            $query->join('UserAngelTypes', function ($join) use ($angelType) {
+            $query->join('user_angel_type', function ($join) use ($angelType) {
                 /** @var JoinClause $join */
-                $join->on('UserAngelTypes.user_id', '=', 'users.id')
-                    ->where('UserAngelTypes.angeltype_id', '=', $angelType);
+                $join->on('user_angel_type.user_id', '=', 'users.id')
+                    ->where('user_angel_type.angel_type_id', '=', $angelType);
             });
 
-            $query->join('AngelTypes', function ($join) {
+            $query->join('angel_types', function ($join) {
                 /** @var JoinClause $join */
-                $join->on('UserAngelTypes.angeltype_id', '=', 'AngelTypes.id')
-                    ->whereNotNull('UserAngelTypes.confirm_user_id')
-                    ->orWhere('AngelTypes.restricted', '=', '0');
+                $join->on('user_angel_type.angel_type_id', '=', 'angel_types.id')
+                    ->whereNotNull('user_angel_type.confirm_user_id')
+                    ->orWhere('angel_types.restricted', '=', '0');
             });
         }
 
@@ -98,11 +99,11 @@ function admin_free()
             'last_shift'  => User_last_shift_render($usr),
             'dect'        => sprintf('<a href="tel:%s">%1$s</a>', $usr->contact->dect),
             'email'       => $usr->settings->email_human
-                ? sprintf('<a href="email:%s">%1$s</a>', $email)
+                ? sprintf('<a href="mailto:%s">%1$s</a>', $email)
                 : icon('eye-slash'),
             'actions'     =>
                 auth()->can('admin_user')
-                    ? button(page_link_to('admin_user', ['id' => $usr->id]), __('edit'), 'btn-sm')
+                    ? button(page_link_to('admin_user', ['id' => $usr->id]), icon('pencil') . __('edit'), 'btn-sm')
                     : ''
         ];
     }

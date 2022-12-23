@@ -41,24 +41,16 @@ function public_dashboard_view($stats, $free_shifts)
                     stats(__('Angels needed for nightshifts'), $stats['needed-night']),
                     stats(__('Angels currently working'), $stats['angels-working'], 'default'),
                     stats(__('Hours to be worked'), $stats['hours-to-work'], 'default'),
-                    '<script>
-                    $(function() {
-                        setInterval(function() {
-                            $(\'#content .wrapper\').load(window.location.href + \' #public-dashboard\');
-                        }, 60000);
-                    })
-                    </script>'
                 ], 'statistics'),
                 $needed_angels
             ], 'public-dashboard'),
         ]),
         div('first col-md-12 text-center', [buttons([
-            button_js(
-                '
-                $(\'#navbar-collapse-1,.navbar-nav,.navbar-toggler,#footer,#fullscreen-button\').remove();
-                $(\'.navbar-brand\').append(\' ' . __('Public Dashboard') . '\');
-                ',
-                icon('fullscreen') . __('Fullscreen')
+            button(
+                '#',
+                icon('fullscreen') . __('Fullscreen'),
+                '',
+                'dashboard-fullscreen'
             ),
             auth()->user() ? button(
                 public_dashboard_link($isFiltered ? [] : ['filtered' => 1] + $filter),
@@ -76,7 +68,7 @@ function public_dashboard_view($stats, $free_shifts)
  */
 function public_dashboard_shift_render($shift)
 {
-    $panel_body = icon('clock') . $shift['start'] . ' - ' . $shift['end'];
+    $panel_body = icon('clock-history') . $shift['start'] . ' - ' . $shift['end'];
     $panel_body .= ' (' . $shift['duration'] . '&nbsp;h)';
 
     $panel_body .= '<br>' . icon('list-task') . $shift['shifttype_name'];
@@ -84,7 +76,7 @@ function public_dashboard_shift_render($shift)
         $panel_body .= ' (' . $shift['title'] . ')';
     }
 
-    $panel_body .= '<br>' . icon('geo-alt') . $shift['room_name'];
+    $panel_body .= '<br>' . icon('pin-map-fill') . $shift['room_name'];
 
     foreach ($shift['needed_angels'] as $needed_angels) {
         $panel_body .= '<br>' . icon('person')

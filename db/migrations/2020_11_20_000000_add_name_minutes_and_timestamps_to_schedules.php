@@ -4,7 +4,6 @@ namespace Engelsystem\Migrations;
 
 use Carbon\Carbon;
 use Engelsystem\Database\Migration\Migration;
-use Engelsystem\Models\Shifts\Schedule;
 use Illuminate\Database\Schema\Blueprint;
 
 class AddNameMinutesAndTimestampsToSchedules extends Migration
@@ -14,11 +13,13 @@ class AddNameMinutesAndTimestampsToSchedules extends Migration
     /**
      * Run the migration
      */
-    public function up()
+    public function up(): void
     {
+        $connection = $this->schema->getConnection();
+
         $this->schema->table(
             'schedules',
-            function (Blueprint $table) {
+            function (Blueprint $table): void {
                 $table->string('name')->default('')->after('id');
                 $table->integer('shift_type')->default(0)->after('name');
                 $table->integer('minutes_before')->default(0)->after('shift_type');
@@ -27,7 +28,7 @@ class AddNameMinutesAndTimestampsToSchedules extends Migration
             }
         );
 
-        Schedule::query()
+        $connection->table('schedules')
             ->update([
                 'created_at'     => Carbon::now(),
                 'minutes_before' => 15,
@@ -36,7 +37,7 @@ class AddNameMinutesAndTimestampsToSchedules extends Migration
 
         $this->schema->table(
             'schedules',
-            function (Blueprint $table) {
+            function (Blueprint $table): void {
                 $table->string('name')->default(null)->change();
                 $table->integer('shift_type')->default(null)->change();
                 $table->integer('minutes_before')->default(null)->change();
@@ -46,7 +47,6 @@ class AddNameMinutesAndTimestampsToSchedules extends Migration
 
         // Add legacy reference
         if ($this->schema->hasTable('ShiftTypes')) {
-            $connection = $this->schema->getConnection();
             $query = $connection
                 ->table('Shifts')
                 ->select('Shifts.shifttype_id')
@@ -54,12 +54,14 @@ class AddNameMinutesAndTimestampsToSchedules extends Migration
                 ->where('schedule_shift.schedule_id', $connection->raw('schedules.id'))
                 ->limit(1);
 
-            Schedule::query()
-                ->update(['shift_type' => $connection->raw('(' . $query->toSql() . ')')]);
+            $connection->table('schedules')
+                ->update([
+                    'shift_type' => $connection->raw('(' . $query->toSql() . ')')
+                ]);
 
             $this->schema->table(
                 'schedules',
-                function (Blueprint $table) {
+                function (Blueprint $table): void {
                     $this->addReference($table, 'shift_type', 'ShiftTypes');
                 }
             );
@@ -69,11 +71,11 @@ class AddNameMinutesAndTimestampsToSchedules extends Migration
     /**
      * Reverse the migration
      */
-    public function down()
+    public function down(): void
     {
         $this->schema->table(
             'schedules',
-            function (Blueprint $table) {
+            function (Blueprint $table): void {
                 $table->dropForeign('schedules_shift_type_foreign');
                 $table->dropColumn('name');
                 $table->dropColumn('shift_type');

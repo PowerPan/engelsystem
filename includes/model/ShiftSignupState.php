@@ -11,50 +11,47 @@ class ShiftSignupState
     /**
      * Shift has free places
      */
-    const FREE = 'FREE';
+    public const FREE = 'FREE';
 
     /**
      * Shift collides with users shifts
      */
-    const COLLIDES = 'COLLIDES';
+    public const COLLIDES = 'COLLIDES';
 
     /**
      * User cannot join because of a restricted angeltype or user is not in the angeltype
      */
-    const ANGELTYPE = 'ANGELTYPE';
+    public const ANGELTYPE = 'ANGELTYPE';
 
     /**
      * Shift is full
      */
-    const OCCUPIED = 'OCCUPIED';
+    public const OCCUPIED = 'OCCUPIED';
 
     /**
      * User is admin and can do what he wants.
      */
-    const ADMIN = 'ADMIN';
+    public const ADMIN = 'ADMIN';
 
     /**
      * Shift has already ended, no signup
      */
-    const SHIFT_ENDED = 'SHIFT_ENDED';
+    public const SHIFT_ENDED = 'SHIFT_ENDED';
 
     /**
      * Shift is not available yet
      */
-    const NOT_YET = 'NOT_YET';
+    public const NOT_YET = 'NOT_YET';
 
     /**
      * User is already signed up
      */
-    const SIGNED_UP = 'SIGNED_UP';
+    public const SIGNED_UP = 'SIGNED_UP';
 
     /**
      * User has to be arrived
      */
-    const NOT_ARRIVED = 'NOT_ARRIVED';
-
-    /** @var string */
-    private $state;
+    public const NOT_ARRIVED = 'NOT_ARRIVED';
 
     /** @var int */
     private $freeEntries;
@@ -65,9 +62,8 @@ class ShiftSignupState
      * @param string $state
      * @param int    $free_entries
      */
-    public function __construct($state, $free_entries)
+    public function __construct(private $state, $free_entries)
     {
-        $this->state = $state;
         $this->freeEntries = $free_entries;
     }
 
@@ -91,29 +87,14 @@ class ShiftSignupState
      */
     private function valueForState($state)
     {
-        switch ($state) {
-            case ShiftSignupState::NOT_ARRIVED:
-            case ShiftSignupState::NOT_YET:
-            case ShiftSignupState::SHIFT_ENDED:
-                return 100;
-
-            case ShiftSignupState::SIGNED_UP:
-                return 90;
-
-            case ShiftSignupState::FREE:
-                return 80;
-
-            case ShiftSignupState::ANGELTYPE:
-            case ShiftSignupState::COLLIDES:
-                return 70;
-
-            case ShiftSignupState::OCCUPIED:
-            case ShiftSignupState::ADMIN:
-                return 60;
-
-            default:
-                return 0;
-        }
+        return match ($state) {
+            ShiftSignupState::NOT_ARRIVED, ShiftSignupState::NOT_YET, ShiftSignupState::SHIFT_ENDED => 100,
+            ShiftSignupState::SIGNED_UP => 90,
+            ShiftSignupState::FREE      => 80,
+            ShiftSignupState::ANGELTYPE, ShiftSignupState::COLLIDES => 70,
+            ShiftSignupState::OCCUPIED, ShiftSignupState::ADMIN     => 60,
+            default => 0,
+        };
     }
 
     /**
@@ -123,13 +104,10 @@ class ShiftSignupState
      */
     public function isSignupAllowed()
     {
-        switch ($this->state) {
-            case ShiftSignupState::FREE:
-            case ShiftSignupState::ADMIN:
-                return true;
-        }
-
-        return false;
+        return match ($this->state) {
+            ShiftSignupState::FREE, ShiftSignupState::ADMIN => true,
+            default => false,
+        };
     }
 
     /**

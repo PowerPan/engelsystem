@@ -17,17 +17,15 @@ use PHPUnit\Framework\MockObject\MockObject;
 
 class QuestionsControllerTest extends ControllerTest
 {
-    /** @var Authenticator|MockObject */
-    protected $auth;
+    protected Authenticator|MockObject $auth;
 
-    /** @var User */
-    protected $user;
+    protected User $user;
 
     /**
      * @covers \Engelsystem\Controllers\Admin\QuestionsController::index
      * @covers \Engelsystem\Controllers\Admin\QuestionsController::__construct
      */
-    public function testIndex()
+    public function testIndex(): void
     {
         $this->response->expects($this->once())
             ->method('withView')
@@ -50,7 +48,7 @@ class QuestionsControllerTest extends ControllerTest
     /**
      * @covers \Engelsystem\Controllers\Admin\QuestionsController::delete
      */
-    public function testDeleteInvalidRequest()
+    public function testDeleteInvalidRequest(): void
     {
         /** @var QuestionsController $controller */
         $controller = $this->app->get(QuestionsController::class);
@@ -63,7 +61,7 @@ class QuestionsControllerTest extends ControllerTest
     /**
      * @covers \Engelsystem\Controllers\Admin\QuestionsController::delete
      */
-    public function testDeleteNotFound()
+    public function testDeleteNotFound(): void
     {
         $this->request = $this->request->withParsedBody(['id' => 42, 'delete' => '1']);
 
@@ -78,7 +76,7 @@ class QuestionsControllerTest extends ControllerTest
         /**
      * @covers \Engelsystem\Controllers\Admin\QuestionsController::delete
      */
-    public function testDelete()
+    public function testDelete(): void
     {
         $this->request = $this->request->withParsedBody(['id' => 1, 'delete' => '1']);
         $this->setExpects($this->response, 'redirectTo', ['http://localhost/admin/questions'], $this->response);
@@ -98,9 +96,9 @@ class QuestionsControllerTest extends ControllerTest
      * @covers \Engelsystem\Controllers\Admin\QuestionsController::edit
      * @covers \Engelsystem\Controllers\Admin\QuestionsController::showEdit
      */
-    public function testEdit()
+    public function testEdit(): void
     {
-        $this->request->attributes->set('id', 1);
+        $this->request->attributes->set('question_id', 1);
         $this->response->expects($this->once())
             ->method('withView')
             ->willReturnCallback(function (string $view, array $data) {
@@ -124,7 +122,7 @@ class QuestionsControllerTest extends ControllerTest
     /**
      * @covers \Engelsystem\Controllers\Admin\QuestionsController::save
      */
-    public function testSaveCreateInvalid()
+    public function testSaveCreateInvalid(): void
     {
         $this->expectException(ValidationException::class);
 
@@ -137,9 +135,9 @@ class QuestionsControllerTest extends ControllerTest
     /**
      * @covers \Engelsystem\Controllers\Admin\QuestionsController::save
      */
-    public function testSaveCreateEdit()
+    public function testSaveCreateEdit(): void
     {
-        $this->request->attributes->set('id', 2);
+        $this->request->attributes->set('question_id', 2);
         $body = [
             'text' => 'Foo?',
             'answer' => 'Bar!',
@@ -168,9 +166,9 @@ class QuestionsControllerTest extends ControllerTest
     /**
      * @covers \Engelsystem\Controllers\Admin\QuestionsController::save
      */
-    public function testSavePreview()
+    public function testSavePreview(): void
     {
-        $this->request->attributes->set('id', 1);
+        $this->request->attributes->set('question_id', 1);
         $this->request = $this->request->withParsedBody([
             'text'    => 'Foo?',
             'answer'  => 'Bar!',
@@ -205,9 +203,9 @@ class QuestionsControllerTest extends ControllerTest
     /**
      * @covers \Engelsystem\Controllers\Admin\QuestionsController::save
      */
-    public function testSaveDelete()
+    public function testSaveDelete(): void
     {
-        $this->request->attributes->set('id', 1);
+        $this->request->attributes->set('question_id', 1);
         $this->request = $this->request->withParsedBody([
             'text'   => '.',
             'answer' => '.',

@@ -1,9 +1,12 @@
 <?php
 
-use Carbon\Carbon;
+use Engelsystem\Helpers\Carbon;
 use Engelsystem\Http\Exceptions\HttpForbidden;
+use Engelsystem\Models\AngelType;
 use Engelsystem\Models\Room;
 use Engelsystem\Models\Shifts\ScheduleShift;
+use Engelsystem\Models\Shifts\ShiftType;
+use Engelsystem\Models\User\User;
 use Engelsystem\ShiftSignupState;
 
 /**
@@ -45,7 +48,6 @@ function shift_edit_link($shift)
  */
 function shift_edit_controller()
 {
-    $msg = '';
     $valid = true;
     $request = request();
 
@@ -69,14 +71,10 @@ function shift_edit_controller()
     foreach (Rooms() as $room) {
         $rooms[$room->id] = $room->name;
     }
-    $angeltypes = select_array(AngelTypes(), 'id', 'name');
-    $shifttypes = select_array(ShiftTypes(), 'id', 'name');
+    $angeltypes = AngelType::all()->pluck('name', 'id')->toArray();
+    $shifttypes = ShiftType::all()->pluck('name', 'id')->toArray();
 
-    $needed_angel_types = select_array(
-        NeededAngelTypes_by_shift($shift_id),
-        'angel_type_id',
-        'count'
-    );
+    $needed_angel_types = collect(NeededAngelTypes_by_shift($shift_id))->pluck('count', 'angel_type_id')->toArray();
     foreach (array_keys($angeltypes) as $angeltype_id) {
         if (!isset($needed_angel_types[$angeltype_id])) {
             $needed_angel_types[$angeltype_id] = 0;
@@ -104,33 +102,33 @@ function shift_edit_controller()
             $rid = $request->input('rid');
         } else {
             $valid = false;
-            $msg .= error(__('Please select a room.'), true);
+            error(__('Please select a room.'), true);
         }
 
         if ($request->has('shifttype_id') && isset($shifttypes[$request->input('shifttype_id')])) {
             $shifttype_id = $request->input('shifttype_id');
         } else {
             $valid = false;
-            $msg .= error(__('Please select a shifttype.'), true);
+            error(__('Please select a shifttype.'), true);
         }
 
         if ($request->has('start') && $tmp = parse_date('Y-m-d H:i', $request->input('start'))) {
             $start = $tmp;
         } else {
             $valid = false;
-            $msg .= error(__('Please enter a valid starting time for the shifts.'), true);
+            error(__('Please enter a valid starting time for the shifts.'), true);
         }
 
         if ($request->has('end') && $tmp = parse_date('Y-m-d H:i', $request->input('end'))) {
             $end = $tmp;
         } else {
             $valid = false;
-            $msg .= error(__('Please enter a valid ending time for the shifts.'), true);
+            error(__('Please enter a valid ending time for the shifts.'), true);
         }
 
         if ($start >= $end) {
             $valid = false;
-            $msg .= error(__('The ending time has to be after the starting time.'), true);
+            error(__('The ending time has to be after the starting time.'), true);
         }
 
         foreach ($needed_angel_types as $needed_angeltype_id => $count) {
@@ -142,7 +140,7 @@ function shift_edit_controller()
                     $needed_angel_types[$needed_angeltype_id] = trim($request->input($queryKey));
                 } else {
                     $valid = false;
-                    $msg .= error(sprintf(
+                    error(sprintf(
                         __('Please check your input for needed angels of type %s.'),
                         $angeltypes[$needed_angeltype_id]
                     ), true);
@@ -185,8 +183,11 @@ function shift_edit_controller()
 
     $angel_types_spinner = '';
     foreach ($angeltypes as $angeltype_id => $angeltype_name) {
-        $angel_types_spinner .= form_spinner('type_' . $angeltype_id, $angeltype_name,
-            $needed_angel_types[$angeltype_id]);
+        $angel_types_spinner .= form_spinner(
+            'angeltype_count_' . $angeltype_id,
+            $angeltype_name,
+            $needed_angel_types[$angeltype_id]
+        );
     }
 
     return page_with_title(
@@ -236,7 +237,21 @@ function shift_delete_controller()
 
     // Schicht löschen bestätigt
     if ($request->hasPostData('delete')) {
-        UserWorkLog_from_shift($shift_id);
+        $room = Room::find($shift['RID']);
+        foreach ($shift['ShiftEntry'] as $entry) {
+            $type = AngelType::find($entry['TID']);
+            event('shift.entry.deleting', [
+                'user'       => User::find($entry['user_id']),
+                'start'      => Carbon::createFromTimestamp($shift['start']),
+                'end'        => Carbon::createFromTimestamp($shift['end']),
+                'name'       => $shift['name'],
+                'title'      => $shift['title'],
+                'type'       => $type->name,
+                'room'       => $room,
+                'freeloaded' => (bool)$entry['freeloaded'],
+            ]);
+        }
+
         Shift_delete($shift_id);
 
         engelsystem_log(
@@ -284,19 +299,20 @@ function shift_controller()
         throw_redirect(page_link_to('user_shifts'));
     }
 
-    $shifttype = ShiftType($shift['shifttype_id']);
+    $shifttype = ShiftType::find($shift['shifttype_id']);
     $room = Room::find($shift['RID']);
-    $angeltypes = AngelTypes();
+    $angeltypes = AngelType::all();
     $user_shifts = Shifts_by_user($user->id);
 
     $shift_signup_state = new ShiftSignupState(ShiftSignupState::OCCUPIED, 0);
-    foreach ($angeltypes as &$angeltype) {
+    foreach ($angeltypes as $angeltype) {
         $needed_angeltype = NeededAngeltype_by_Shift_and_Angeltype($shift, $angeltype);
         if (empty($needed_angeltype)) {
             continue;
         }
 
-        $shift_entries = ShiftEntries_by_shift_and_angeltype($shift['SID'], $angeltype['id']);
+        $shift_entries = ShiftEntries_by_shift_and_angeltype($shift['SID'], $angeltype->id);
+        $needed_angeltype = (new AngelType())->forceFill($needed_angeltype);
 
         $angeltype_signup_state = Shift_signup_allowed(
             $user,
@@ -308,7 +324,7 @@ function shift_controller()
             $shift_entries
         );
         $shift_signup_state->combineWith($angeltype_signup_state);
-        $angeltype['shift_signup_state'] = $angeltype_signup_state;
+        $angeltype->shift_signup_state = $angeltype_signup_state;
     }
 
     return [
@@ -318,7 +334,7 @@ function shift_controller()
 }
 
 /**
- * @return array|false
+ * @return array
  */
 function shifts_controller()
 {
@@ -327,17 +343,11 @@ function shifts_controller()
         throw_redirect(page_link_to('user_shifts'));
     }
 
-    switch ($request->input('action')) {
-        case 'view':
-            return shift_controller();
-        /** @noinspection PhpMissingBreakStatementInspection */
-        case 'next':
-            shift_next_controller();
-        default:
-            throw_redirect(page_link_to('/'));
-    }
-
-    return false;
+    return match ($request->input('action')) {
+        'view'  => shift_controller(),
+        'next'  => shift_next_controller(), // throw_redirect
+        default => throw_redirect(page_link_to('/')),
+    };
 }
 
 /**
@@ -369,7 +379,7 @@ function shifts_json_export_controller()
 
     if (
         !$request->has('key')
-        || !preg_match('/^[\da-f]{32}$/', $request->input('key'))
+        || !$request->input('key')
         || !$user
     ) {
         throw new HttpForbidden('{"error":"Missing or invalid key"}', ['content-type' => 'application/json']);

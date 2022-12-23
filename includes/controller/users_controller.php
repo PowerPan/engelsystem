@@ -27,17 +27,13 @@ function users_controller()
         $action = $request->input('action');
     }
 
-    switch ($action) {
-        case 'view':
-            return user_controller();
-        case 'delete':
-            return user_delete_controller();
-        case 'edit_vouchers':
-            return user_edit_vouchers_controller();
-        case 'list':
-        default:
-            return users_list_controller();
-    }
+    return match ($action) {
+        'view'          => user_controller(),
+        'delete'        => user_delete_controller(),
+        'edit_vouchers' => user_edit_vouchers_controller(),
+        'list'          => users_list_controller(),
+        default         => users_list_controller(),
+    };
 }
 
 /**
@@ -70,10 +66,12 @@ function user_delete_controller()
     if ($request->hasPostData('submit')) {
         $valid = true;
 
-        if (!(
+        if (
+            !(
             $request->has('password')
             && $auth->verifyPassword($user, $request->postData('password'))
-        )) {
+            )
+        ) {
             $valid = false;
             error(__('auth.password.error'));
         }
@@ -173,8 +171,10 @@ function user_edit_vouchers_controller()
             $user_source->state->save();
 
             success(__('Saved the number of vouchers.'));
-            engelsystem_log(User_Nick_render($user_source, true) . ': ' . sprintf('Got %s vouchers',
-                    $user_source->state->got_voucher));
+            engelsystem_log(User_Nick_render($user_source, true) . ': ' . sprintf(
+                'Got %s vouchers',
+                $user_source->state->got_voucher
+            ));
 
             throw_redirect(user_link($user_source->id));
         }
@@ -206,17 +206,19 @@ function user_controller()
     $shifts = Shifts_by_user($user_source->id, auth()->can('user_shifts_admin'));
     foreach ($shifts as &$shift) {
         // TODO: Move queries to model
-        $shift['needed_angeltypes'] = Db::select('
-            SELECT DISTINCT `AngelTypes`.*
+        $shift['needed_angeltypes'] = Db::select(
+            '
+            SELECT DISTINCT `angel_types`.*
             FROM `ShiftEntry`
-            JOIN `AngelTypes` ON `ShiftEntry`.`TID`=`AngelTypes`.`id`
+            JOIN `angel_types` ON `ShiftEntry`.`TID`=`angel_types`.`id`
             WHERE `ShiftEntry`.`SID` = ?
-            ORDER BY `AngelTypes`.`name`
+            ORDER BY `angel_types`.`name`
             ',
             [$shift['SID']]
         );
         foreach ($shift['needed_angeltypes'] as &$needed_angeltype) {
-            $needed_angeltype['users'] = Db::select('
+            $needed_angeltype['users'] = Db::select(
+                '
                     SELECT `ShiftEntry`.`freeloaded`, `users`.*
                     FROM `ShiftEntry`
                     JOIN `users` ON `ShiftEntry`.`UID`=`users`.`id`
@@ -244,8 +246,8 @@ function user_controller()
             $user_source,
             auth()->can('admin_user'),
             User_is_freeloader($user_source),
-            User_angeltypes($user_source->id),
-            User_groups($user_source->id),
+            $user_source->userAngelTypes,
+            $user_source->groups,
             $shifts,
             $user->id == $user_source->id,
             $tshirt_score,
@@ -270,7 +272,8 @@ function users_list_controller()
     }
 
     $order_by = 'name';
-    if ($request->has('OrderBy') && in_array($request->input('OrderBy'), [
+    if (
+        $request->has('OrderBy') && in_array($request->input('OrderBy'), [
             'name',
             'first_name',
             'last_name',
@@ -285,7 +288,8 @@ function users_list_controller()
             'planned_arrival_date',
             'planned_departure_date',
             'last_login_at',
-        ])) {
+        ])
+    ) {
         $order_by = $request->input('OrderBy');
     }
 

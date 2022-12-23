@@ -2,6 +2,7 @@
 
 namespace Engelsystem;
 
+use Engelsystem\Models\AngelType;
 use Engelsystem\Models\Room;
 use Engelsystem\Models\User\User;
 
@@ -15,10 +16,10 @@ class ShiftCalendarShiftRenderer
     /**
      * Renders a shift
      *
-     * @param array $shift The shift to render
-     * @param array $needed_angeltypes
-     * @param array $shift_entries
-     * @param User  $user  The user who is viewing the shift calendar
+     * @param array   $shift The shift to render
+     * @param array[] $needed_angeltypes
+     * @param array   $shift_entries
+     * @param User    $user The user who is viewing the shift calendar
      * @return array
      */
     public function render($shift, $needed_angeltypes, $shift_entries, $user)
@@ -70,28 +71,14 @@ class ShiftCalendarShiftRenderer
      */
     private function classForSignupState(ShiftSignupState $shiftSignupState)
     {
-        switch ($shiftSignupState->getState()) {
-            case ShiftSignupState::ADMIN:
-            case ShiftSignupState::OCCUPIED:
-                return 'success';
-
-            case ShiftSignupState::SIGNED_UP:
-                return 'primary';
-
-            case ShiftSignupState::NOT_ARRIVED:
-            case ShiftSignupState::NOT_YET:
-            case ShiftSignupState::SHIFT_ENDED:
-                return 'secondary';
-
-            case ShiftSignupState::ANGELTYPE:
-            case ShiftSignupState::COLLIDES:
-                return 'warning';
-
-            case ShiftSignupState::FREE:
-                return 'danger';
-            default:
-                return 'light';
-        }
+        return match ($shiftSignupState->getState()) {
+            ShiftSignupState::ADMIN, ShiftSignupState::OCCUPIED => 'success',
+            ShiftSignupState::SIGNED_UP => 'primary',
+            ShiftSignupState::NOT_ARRIVED, ShiftSignupState::NOT_YET, ShiftSignupState::SHIFT_ENDED => 'secondary',
+            ShiftSignupState::ANGELTYPE, ShiftSignupState::COLLIDES => 'warning',
+            ShiftSignupState::FREE => 'danger',
+            default => 'light',
+        };
     }
 
     /**
@@ -136,7 +123,8 @@ class ShiftCalendarShiftRenderer
 
         if (auth()->can('user_shifts_admin')) {
             $html .= '<li class="list-group-item d-flex align-items-center ' . $this->classBg() . '">';
-            $html .= button(shift_entry_create_link_admin($shift),
+            $html .= button(
+                shift_entry_create_link_admin($shift),
                 icon('plus-lg') . __('Add more angels'),
                 'btn-sm'
             );
@@ -158,15 +146,16 @@ class ShiftCalendarShiftRenderer
     /**
      * Renders a list entry containing the needed angels for an angeltype
      *
-     * @param array   $shift     The shift which is rendered
+     * @param array   $shift The shift which is rendered
      * @param array[] $shift_entries
-     * @param array[] $angeltype The angeltype, containing information about needed angeltypes
+     * @param array   $angeltype The angeltype, containing information about needed angeltypes
      *                           and already signed up angels
-     * @param User    $user      The user who is viewing the shift calendar
+     * @param User    $user The user who is viewing the shift calendar
      * @return array
      */
     private function renderShiftNeededAngeltype($shift, $shift_entries, $angeltype, $user)
     {
+        $angeltype = (new AngelType())->forceFill($angeltype);
         $entry_list = [];
         foreach ($shift_entries as $entry) {
             $class = $entry['freeloaded'] ? 'text-decoration-line-through' : '';
@@ -195,7 +184,8 @@ class ShiftCalendarShiftRenderer
                     . '</a> '
                     . button(
                         shift_entry_create_link($shift, $angeltype),
-                        __('Sign up'), 'btn-sm btn-primary text-nowrap d-print-none'
+                        __('Sign up'),
+                        'btn-sm btn-primary text-nowrap d-print-none'
                     );
                 break;
 
@@ -214,18 +204,18 @@ class ShiftCalendarShiftRenderer
                 break;
 
             case ShiftSignupState::ANGELTYPE:
-                if ($angeltype['restricted'] == 1) {
+                if ($angeltype->restricted) {
                     // User has to be confirmed on the angeltype first
-                    $entry_list[] = $inner_text . icon('book');
+                    $entry_list[] = $inner_text . icon('mortarboard-fill');
                 } else {
                     // Add link to join the angeltype first
                     $entry_list[] = $inner_text . '<br />'
                         . button(
                             page_link_to(
                                 'user_angeltypes',
-                                ['action' => 'add', 'angeltype_id' => $angeltype['id']]
+                                ['action' => 'add', 'angeltype_id' => $angeltype->id]
                             ),
-                            sprintf(__('Become %s'), $angeltype['name']),
+                            sprintf(__('Become %s'), $angeltype->name),
                             'btn-sm'
                         );
                 }

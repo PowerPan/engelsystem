@@ -1,13 +1,27 @@
+{% macro entry_required() %}
+    <span class="bi bi-exclamation-triangle text-info"></span>
+{%- endmacro %}
+
 {% macro input(name, label, type, opt) %}
     <div class="mb-3">
         {% if label -%}
-            <label for="{{ name }}" class="form-label {% if opt.hide_label|default(false) %}sr-only{% endif %}">{{ label }}</label>
+            <label for="{{ name }}" class="form-label {% if opt.hide_label|default(false) %}sr-only{% endif %}">
+                {{ label }}
+                {% if opt.entry_required_icon|default(false) %}
+                    {{ _self.entry_required() }}
+                {% endif %}
+            </label>
         {%- endif %}
         <input
             type="{{ type|default('text') }}" class="form-control"
             id="{{ name }}" name="{{ name }}"
             value="{{ opt.value|default('')|escape('html_attr') }}"
-            {%- if opt.min is defined %} minlength="{{ opt.min }}"{% endif %}
+            {%- if opt.min_length is defined %} minlength="{{ opt.min_length }}"{% endif %}
+            {%- if opt.max_length is defined %} maxlength="{{ opt.max_length }}"{% endif %}
+            {%- if opt.min is defined %} min="{{ opt.min }}"{% endif %}
+            {%- if opt.max is defined %} max="{{ opt.max }}"{% endif %}
+            {%- if opt.step is defined %} step="{{ opt.step }}"{% endif %}
+            {%- if opt.autocomplete is defined %} autocomplete="{{ opt.autocomplete }}"{% endif %}
             {%- if opt.required|default(false) %}
                 required
             {%- endif -%}
@@ -40,7 +54,12 @@
 {% macro select(name, data, label, selected, opt) %}
     <div class="mb-3">
         {% if label -%}
-            <label class="form-label" for="{{ name }}">{{ label }}</label>
+            <label class="form-label" for="{{ name }}">
+                {{ label }}
+                {% if opt.entry_required_icon|default(false) %}
+                    {{ _self.entry_required() }}
+                {% endif %}
+            </label>
         {% endif %}
         <select id="{{ name }}" name="{{ name }}"
                 class="form-control {%- if opt.class is defined %} {{ opt.class }}{% endif %}"
@@ -55,14 +74,18 @@
     </div>
 {%- endmacro %}
 
-{% macro checkbox(name, label, checked, value, disabled) %}
+{% macro checkbox(name, label, checked, value, disabled, raw_label) %}
     <div class="form-check mb-3">
-        <label>
-            <input type="checkbox" id="{{ name }}" name="{{ name }}" value="{{ value|default('1') }}" class="form-check-input"
-                {%- if checked|default(false) %} checked{% endif %}
-                {%- if disabled|default(false) %} disabled{% endif %}
-            >
-            {{ label }}
+        <input class="form-check-input" type="checkbox" id="{{ name }}" name="{{ name }}" value="{{ value|default('1') }}"
+            {%- if checked|default(false) %} checked{% endif %}
+            {%- if disabled|default(false) %} disabled{% endif %}
+        />
+        <label class="form-check-label" for="{{ name }}">
+            {%- if raw_label|default(false) -%}
+                {{ label|raw }}
+            {%- else -%}
+                {{ label }}
+            {%- endif -%}
         </label>
     </div>
 {%- endmacro %}

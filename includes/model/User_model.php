@@ -2,6 +2,7 @@
 
 use Carbon\Carbon;
 use Engelsystem\Database\Db;
+use Engelsystem\Models\AngelType;
 use Engelsystem\Models\User\User;
 use Engelsystem\Models\Worklog;
 use Engelsystem\ValidationResult;
@@ -59,43 +60,21 @@ function User_is_freeloader($user)
 /**
  * Returns all users that are not member of given angeltype.
  *
- * @param array $angeltype Angeltype
+ * @param AngelType $angeltype Angeltype
  *
  * @return User[]|Collection
  */
-function Users_by_angeltype_inverted($angeltype)
+function Users_by_angeltype_inverted(AngelType $angeltype)
 {
     return User::query()
         ->select('users.*')
-        ->leftJoin('UserAngelTypes', function ($query) use ($angeltype) {
+        ->leftJoin('user_angel_type', function ($query) use ($angeltype) {
             /** @var JoinClause $query */
             $query
-                ->on('users.id', '=', 'UserAngelTypes.user_id')
-                ->where('UserAngelTypes.angeltype_id', '=', $angeltype['id']);
+                ->on('users.id', '=', 'user_angel_type.user_id')
+                ->where('user_angel_type.angel_type_id', '=', $angeltype->id);
         })
-        ->whereNull('UserAngelTypes.id')
-        ->orderBy('users.name')
-        ->get();
-}
-
-/**
- * Returns all members of given angeltype.
- *
- * @param array $angeltype
- * @return User[]|Collection
- */
-function Users_by_angeltype($angeltype)
-{
-    return User::query()
-        ->select('users.*',
-            'UserAngelTypes.id AS user_angeltype_id',
-            'UserAngelTypes.confirm_user_id',
-            'UserAngelTypes.supporter',
-            'users_licenses.*'
-        )
-        ->join('UserAngelTypes', 'users.id', '=', 'UserAngelTypes.user_id')
-        ->leftJoin('users_licenses', 'users.id', '=', 'users_licenses.user_id')
-        ->where('UserAngelTypes.angeltype_id', '=', $angeltype['id'])
+        ->whereNull('user_angel_type.id')
         ->orderBy('users.name')
         ->get();
 }
@@ -114,23 +93,11 @@ function User_validate_Nick($nick)
     if (strlen($nick) == 0 || strlen($nick) > 24) {
         return new ValidationResult(false, $nick);
     }
-    if (preg_match('/([^\p{L}\p{N}\-_. ]+)/ui', $nick)) {
+    if (preg_match(config('username_regex', '/([^\p{L}\p{N}\-_. ]+)/ui'), $nick)) {
         return new ValidationResult(false, $nick);
     }
 
     return new ValidationResult(true, $nick);
-}
-
-/**
- * Validate user email address.
- *
- * @param string $mail The email address to validate
- * @return ValidationResult
- */
-function User_validate_mail($mail)
-{
-    $mail = strip_item($mail);
-    return new ValidationResult(check_email($mail), $mail);
 }
 
 /**
@@ -151,13 +118,13 @@ function User_validate_planned_arrival_date($planned_arrival_date)
     $teardown = $config->get('teardown_end');
 
     /** @var Carbon $buildup */
-    if (!empty($buildup) && Carbon::createFromTimestamp($planned_arrival_date)->lessThan($buildup->setTime(0,0))) {
+    if (!empty($buildup) && Carbon::createFromTimestamp($planned_arrival_date)->lessThan($buildup->setTime(0, 0))) {
         // Planned arrival can not be before buildup start date
         return new ValidationResult(false, $buildup->getTimestamp());
     }
 
     /** @var Carbon $teardown */
-    if (!empty($teardown) && Carbon::createFromTimestamp($planned_arrival_date)->greaterThanOrEqualTo($teardown->addDay()->setTime(0,0))) {
+    if (!empty($teardown) && Carbon::createFromTimestamp($planned_arrival_date)->greaterThanOrEqualTo($teardown->addDay()->setTime(0, 0))) {
         // Planned arrival can not be after teardown end date
         return new ValidationResult(false, $teardown->getTimestamp());
     }
@@ -168,7 +135,7 @@ function User_validate_planned_arrival_date($planned_arrival_date)
 /**
  * Validate the planned departure date
  *
- * @param int $planned_arrival_date   Unix timestamp
+ * @param int $planned_arrival_date Unix timestamp
  * @param int $planned_departure_date Unix timestamp
  * @return ValidationResult
  */
@@ -189,13 +156,13 @@ function User_validate_planned_departure_date($planned_arrival_date, $planned_de
     $teardown = $config->get('teardown_end');
 
     /** @var Carbon $buildup */
-    if (!empty($buildup) && Carbon::createFromTimestamp($planned_departure_date)->lessThan($buildup->setTime(0,0))) {
+    if (!empty($buildup) && Carbon::createFromTimestamp($planned_departure_date)->lessThan($buildup->setTime(0, 0))) {
         // Planned departure can not be before buildup start date
         return new ValidationResult(false, $buildup->getTimestamp());
     }
 
     /** @var Carbon $teardown */
-    if (!empty($teardown) && Carbon::createFromTimestamp($planned_departure_date)->greaterThanOrEqualTo($teardown->addDay()->setTime(0,0))) {
+    if (!empty($teardown) && Carbon::createFromTimestamp($planned_departure_date)->greaterThanOrEqualTo($teardown->addDay()->setTime(0, 0))) {
         // Planned departure can not be after teardown end date
         return new ValidationResult(false, $teardown->getTimestamp());
     }
@@ -211,7 +178,7 @@ function User_validate_planned_departure_date($planned_arrival_date, $planned_de
  */
 function User_reset_api_key($user, $log = true)
 {
-    $user->api_key = md5($user->name . time() . rand());
+    $user->api_key = bin2hex(random_bytes(32));
     $user->save();
 
     if ($log) {
@@ -237,19 +204,19 @@ function User_get_eligable_voucher_count($user)
         + $worklog->count();
 
     $shiftsTime = 0;
-    foreach ($shifts as $shift){
+    foreach ($shifts as $shift) {
         $shiftsTime += ($shift['end'] - $shift['start']) / 60 / 60;
     }
-    foreach ($worklog as $entry){
+    foreach ($worklog as $entry) {
         $shiftsTime += $entry->hours;
     }
 
     $vouchers = $voucher_settings['initial_vouchers'];
-    if($voucher_settings['shifts_per_voucher']){
-        $vouchers +=  $shifts_done / $voucher_settings['shifts_per_voucher'];
+    if ($voucher_settings['shifts_per_voucher']) {
+        $vouchers += $shifts_done / $voucher_settings['shifts_per_voucher'];
     }
-    if($voucher_settings['hours_per_voucher']){
-        $vouchers +=  $shiftsTime / $voucher_settings['hours_per_voucher'];
+    if ($voucher_settings['hours_per_voucher']) {
+        $vouchers += $shiftsTime / $voucher_settings['hours_per_voucher'];
     }
 
     $vouchers -= $user->state->got_voucher;
@@ -273,7 +240,8 @@ function User_get_shifts_sum_query()
         return 'COALESCE(SUM(`end` - `start`), 0)';
     }
 
-    return sprintf('
+    return sprintf(
+        '
             COALESCE(SUM(
                 (1 + (
                     (HOUR(FROM_UNIXTIME(`Shifts`.`end`)) > %1$d AND HOUR(FROM_UNIXTIME(`Shifts`.`end`)) < %2$d)
