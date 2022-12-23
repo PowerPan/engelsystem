@@ -16,11 +16,10 @@ use Symfony\Component\HttpFoundation\Session\Session;
 
 class NewsControllerTest extends ControllerTest
 {
-    /** @var Authenticator|MockObject */
-    protected $auth;
+    protected Authenticator|MockObject $auth;
 
     /** @var array */
-    protected $data = [
+    protected array $data = [
         [
             'title'      => 'Foo',
             'text'       => '**foo**',
@@ -33,9 +32,9 @@ class NewsControllerTest extends ControllerTest
      * @covers \Engelsystem\Controllers\Admin\NewsController::edit
      * @covers \Engelsystem\Controllers\Admin\NewsController::showEdit
      */
-    public function testEdit()
+    public function testEdit(): void
     {
-        $this->request->attributes->set('id', 1);
+        $this->request->attributes->set('news_id', 1);
         $this->response->expects($this->once())
             ->method('withView')
             ->willReturnCallback(function ($view, $data) {
@@ -58,7 +57,7 @@ class NewsControllerTest extends ControllerTest
     /**
      * @covers \Engelsystem\Controllers\Admin\NewsController::edit
      */
-    public function testEditIsMeeting()
+    public function testEditIsMeeting(): void
     {
         $isMeeting = false;
         $this->response->expects($this->exactly(3))
@@ -83,14 +82,14 @@ class NewsControllerTest extends ControllerTest
         $controller->edit($this->request);
 
         // Should stay no meeting
-        $this->request->attributes->set('id', 1);
+        $this->request->attributes->set('news_id', 1);
         $controller->edit($this->request);
     }
 
     /**
      * @covers \Engelsystem\Controllers\Admin\NewsController::save
      */
-    public function testSaveCreateInvalid()
+    public function testSaveCreateInvalid(): void
     {
         /** @var NewsController $controller */
         $controller = $this->app->make(NewsController::class);
@@ -100,9 +99,6 @@ class NewsControllerTest extends ControllerTest
         $controller->save($this->request);
     }
 
-    /**
-     * @return array
-     */
     public function saveCreateEditProvider(): array
     {
         return [
@@ -117,16 +113,14 @@ class NewsControllerTest extends ControllerTest
      * @covers       \Engelsystem\Controllers\Admin\NewsController::save
      * @dataProvider saveCreateEditProvider
      *
-     * @param string $text
-     * @param bool $isMeeting
      * @param int|null $id
      */
     public function testSaveCreateEdit(
         string $text,
         bool $isMeeting,
         int $id = null
-    ) {
-        $this->request->attributes->set('id', $id);
+    ): void {
+        $this->request->attributes->set('news_id', $id);
         $id = $id ?: 2;
         $body = [
             'title'      => 'Some Title',
@@ -164,9 +158,9 @@ class NewsControllerTest extends ControllerTest
     /**
      * @covers \Engelsystem\Controllers\Admin\NewsController::save
      */
-    public function testSavePreview()
+    public function testSavePreview(): void
     {
-        $this->request->attributes->set('id', 1);
+        $this->request->attributes->set('news_id', 1);
         $this->request = $this->request->withParsedBody([
             'title'      => 'New title',
             'text'       => 'New text',
@@ -207,9 +201,9 @@ class NewsControllerTest extends ControllerTest
     /**
      * @covers \Engelsystem\Controllers\Admin\NewsController::save
      */
-    public function testSaveDelete()
+    public function testSaveDelete(): void
     {
-        $this->request->attributes->set('id', 1);
+        $this->request->attributes->set('news_id', 1);
         $this->request = $this->request->withParsedBody([
             'title'  => '.',
             'text'   => '.',
@@ -237,7 +231,7 @@ class NewsControllerTest extends ControllerTest
     /**
      * Creates a new user
      */
-    protected function addUser()
+    protected function addUser(): void
     {
         $user = User::factory(['id' => 42])->create();
 
@@ -257,6 +251,9 @@ class NewsControllerTest extends ControllerTest
         $this->app->instance(Authenticator::class, $this->auth);
 
         $eventDispatcher = $this->createMock(EventDispatcher::class);
+        $eventDispatcher->expects(self::any())
+            ->method('dispatch')
+            ->willReturnSelf();
         $this->app->instance('events.dispatcher', $eventDispatcher);
 
         (new News([

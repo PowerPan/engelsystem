@@ -2,56 +2,232 @@
 
 namespace Engelsystem\Test\Unit\Controllers;
 
+use Carbon\Carbon;
 use Engelsystem\Config\Config;
 use Engelsystem\Controllers\SettingsController;
 use Engelsystem\Http\Exceptions\HttpNotFound;
 use Engelsystem\Http\Response;
 use Engelsystem\Models\User\Settings;
-use Engelsystem\Test\Unit\TestCase;
 use PHPUnit\Framework\MockObject\MockObject;
 use Symfony\Component\HttpFoundation\Session\Session;
-use Symfony\Component\HttpFoundation\Session\Storage\MockArraySessionStorage;
-use Psr\Log\LoggerInterface;
 use Engelsystem\Helpers\Authenticator;
 use Engelsystem\Test\Unit\HasDatabase;
-use Engelsystem\Http\Request;
-use Psr\Http\Message\ServerRequestInterface;
-use Psr\Log\Test\TestLogger;
-use Engelsystem\Http\UrlGeneratorInterface;
 use Engelsystem\Http\UrlGenerator;
 use Engelsystem\Models\User\User;
 use Engelsystem\Http\Validation\Validator;
 use Engelsystem\Http\Exceptions\ValidationException;
 
-class SettingsControllerTest extends TestCase
+class SettingsControllerTest extends ControllerTest
 {
     use HasDatabase;
 
-    /** @var Authenticator|MockObject */
-    protected $auth;
+    protected Authenticator|MockObject $auth;
 
-    /** @var Config */
-    protected $config;
+    protected User $user;
 
-    /** @var TestLogger */
-    protected $log;
+    protected SettingsController $controller;
 
-    /** @var Response|MockObject */
-    protected $response;
+    protected function setUpProfileTest(): array
+    {
+        $body = [
+            'pronoun'                => 'Herr',
+            'first_name'             => 'John',
+            'last_name'              => 'Doe',
+            'planned_arrival_date'   => '2022-01-01',
+            'planned_departure_date' => '2022-01-02',
+            'dect'                   => '1234',
+            'mobile'                 => '0123456789',
+            'mobile_show'            => true,
+            'email'                  => 'a@bc.de',
+            'email_shiftinfo'        => true,
+            'email_news'             => true,
+            'email_human'            => true,
+            'email_goody'            => true,
+            'shirt_size'             => 'S',
+        ];
+        $this->request = $this->request->withParsedBody($body);
+        $this->setExpects(
+            $this->response,
+            'redirectTo',
+            ['http://localhost/settings/profile'],
+            $this->response,
+            $this->atLeastOnce()
+        );
 
-    /** @var Request */
-    protected $request;
+        config([
+            'enable_pronoun'         => true,
+            'enable_user_name'       => true,
+            'enable_planned_arrival' => true,
+            'enable_dect'            => true,
+            'enable_mobile_show'     => true,
+            'enable_goody'           => true,
+            'enable_tshirt_size'     => true,
+        ]);
 
-    /** @var User */
-    protected $user;
+        $this->setExpects($this->auth, 'user', null, $this->user, $this->atLeastOnce());
 
-    /** @var Session */
-    protected $session;
+        $this->controller = $this->app->make(SettingsController::class);
+        $this->controller->setValidator(new Validator());
+
+        return $body;
+    }
+
+    /**
+     * @covers \Engelsystem\Controllers\SettingsController::profile
+     */
+    public function testProfile(): void
+    {
+        $this->setExpects($this->auth, 'user', null, $this->user, $this->once());
+        /** @var Response|MockObject $response */
+        $this->response->expects($this->once())
+            ->method('withView')
+            ->willReturnCallback(function ($view, $data) {
+                $this->assertEquals('pages/settings/profile', $view);
+                $this->assertArrayHasKey('user', $data);
+                $this->assertEquals($this->user, $data['user']);
+                return $this->response;
+            });
+
+        $this->controller = $this->app->make(SettingsController::class);
+        $this->controller->profile();
+    }
+
+    /**
+     * @covers \Engelsystem\Controllers\SettingsController::saveProfile
+     * @covers \Engelsystem\Controllers\SettingsController::getSaveProfileRules
+     */
+    public function testSaveProfile(): void
+    {
+        $body = $this->setUpProfileTest();
+        $this->controller->saveProfile($this->request);
+
+        $this->assertEquals($body['pronoun'], $this->user->personalData->pronoun);
+        $this->assertEquals($body['first_name'], $this->user->personalData->first_name);
+        $this->assertEquals($body['last_name'], $this->user->personalData->last_name);
+        $this->assertEquals(
+            $body['planned_arrival_date'],
+            $this->user->personalData->planned_arrival_date->format('Y-m-d')
+        );
+        $this->assertEquals(
+            $body['planned_departure_date'],
+            $this->user->personalData->planned_departure_date->format('Y-m-d')
+        );
+        $this->assertEquals($body['dect'], $this->user->contact->dect);
+        $this->assertEquals($body['mobile'], $this->user->contact->mobile);
+        $this->assertEquals($body['mobile_show'], $this->user->settings->mobile_show);
+        $this->assertEquals($body['email'], $this->user->email);
+        $this->assertEquals($body['email_shiftinfo'], $this->user->settings->email_shiftinfo);
+        $this->assertEquals($body['email_news'], $this->user->settings->email_news);
+        $this->assertEquals($body['email_human'], $this->user->settings->email_human);
+        $this->assertEquals($body['email_goody'], $this->user->settings->email_goody);
+        $this->assertEquals($body['shirt_size'], $this->user->personalData->shirt_size);
+    }
+
+    /**
+     * @covers \Engelsystem\Controllers\SettingsController::saveProfile
+     */
+    public function testSaveProfileThrowsErrorOnInvalidArrival(): void
+    {
+        $this->setUpProfileTest();
+        config(['buildup_start' => new Carbon('2022-01-02')]); // arrival before buildup
+        $this->controller->saveProfile($this->request);
+        $this->assertHasNotification('settings.profile.planned_arrival_date.invalid', 'errors');
+    }
+
+    /**
+     * @covers \Engelsystem\Controllers\SettingsController::saveProfile
+     */
+    public function testSaveProfileThrowsErrorOnInvalidDeparture(): void
+    {
+        $this->setUpProfileTest();
+        config(['teardown_end' => new Carbon('2022-01-01')]); // departure after teardown
+        $this->controller->saveProfile($this->request);
+        $this->assertHasNotification('settings.profile.planned_departure_date.invalid', 'errors');
+    }
+
+    /**
+     * @covers \Engelsystem\Controllers\SettingsController::saveProfile
+     */
+    public function testSaveProfileIgnoresPronounIfDisabled(): void
+    {
+        $this->setUpProfileTest();
+        config(['enable_pronoun' => false]);
+        $this->controller->saveProfile($this->request);
+        $this->assertEquals('', $this->user->personalData->pronoun);
+    }
+
+    /**
+     * @covers \Engelsystem\Controllers\SettingsController::saveProfile
+     */
+    public function testSaveProfileIgnoresFirstAndLastnameIfDisabled(): void
+    {
+        $this->setUpProfileTest();
+        config(['enable_user_name' => false]);
+        $this->controller->saveProfile($this->request);
+        $this->assertEquals('', $this->user->personalData->first_name);
+        $this->assertEquals('', $this->user->personalData->last_name);
+    }
+
+    /**
+     * @covers \Engelsystem\Controllers\SettingsController::saveProfile
+     */
+    public function testSaveProfileIgnoresArrivalDatesIfDisabled(): void
+    {
+        $this->setUpProfileTest();
+        config(['enable_planned_arrival' => false]);
+        $this->controller->saveProfile($this->request);
+        $this->assertEquals('', $this->user->personalData->planned_arrival_date);
+        $this->assertEquals('', $this->user->personalData->planned_departure_date);
+    }
+
+    /**
+     * @covers \Engelsystem\Controllers\SettingsController::saveProfile
+     */
+    public function testSaveProfileIgnoresDectIfDisabled(): void
+    {
+        $this->setUpProfileTest();
+        config(['enable_dect' => false]);
+        $this->controller->saveProfile($this->request);
+        $this->assertEquals('', $this->user->contact->dect);
+    }
+
+    /**
+     * @covers \Engelsystem\Controllers\SettingsController::saveProfile
+     */
+    public function testSaveProfileIgnoresMobileShowIfDisabled(): void
+    {
+        $this->setUpProfileTest();
+        config(['enable_mobile_show' => false]);
+        $this->controller->saveProfile($this->request);
+        $this->assertFalse($this->user->settings->mobile_show);
+    }
+
+    /**
+     * @covers \Engelsystem\Controllers\SettingsController::saveProfile
+     */
+    public function testSaveProfileIgnoresEmailGoodyIfDisabled(): void
+    {
+        $this->setUpProfileTest();
+        config(['enable_goody' => false]);
+        $this->controller->saveProfile($this->request);
+        $this->assertFalse($this->user->settings->email_goody);
+    }
+
+    /**
+     * @covers \Engelsystem\Controllers\SettingsController::saveProfile
+     */
+    public function testSaveProfileIgnoresTShirtSizeIfDisabled(): void
+    {
+        $this->setUpProfileTest();
+        config(['enable_tshirt_size' => false]);
+        $this->controller->saveProfile($this->request);
+        $this->assertEquals('', $this->user->personalData->shirt_size);
+    }
 
     /**
      * @covers \Engelsystem\Controllers\SettingsController::password
      */
-    public function testPassword()
+    public function testPassword(): void
     {
         /** @var Response|MockObject $response */
         $this->response->expects($this->once())
@@ -62,15 +238,13 @@ class SettingsControllerTest extends TestCase
             return $this->response;
         });
 
-        /** @var SettingsController $controller */
-        $controller = $this->app->make(SettingsController::class);
-        $controller->password();
+        $this->controller->password();
     }
 
     /**
      * @covers \Engelsystem\Controllers\SettingsController::savePassword
      */
-    public function testSavePassword()
+    public function testSavePassword(): void
     {
         $body = [
             'password' => 'password',
@@ -90,10 +264,7 @@ class SettingsControllerTest extends TestCase
             $this->once()
         );
 
-        /** @var SettingsController $controller */
-        $controller = $this->app->make(SettingsController::class);
-        $controller->setValidator(new Validator());
-        $controller->savePassword($this->request);
+        $this->controller->savePassword($this->request);
 
         $this->assertTrue($this->log->hasInfoThatContains('User set new password.'));
 
@@ -106,7 +277,7 @@ class SettingsControllerTest extends TestCase
     /**
      * @covers \Engelsystem\Controllers\SettingsController::savePassword
      */
-    public function testSavePasswordWhenEmpty()
+    public function testSavePasswordWhenEmpty(): void
     {
         $this->user->password = '';
         $this->user->save();
@@ -127,16 +298,13 @@ class SettingsControllerTest extends TestCase
             $this->once()
         );
 
-        /** @var SettingsController $controller */
-        $controller = $this->app->make(SettingsController::class);
-        $controller->setValidator(new Validator());
-        $controller->savePassword($this->request);
+        $this->controller->savePassword($this->request);
     }
 
     /**
      * @covers \Engelsystem\Controllers\SettingsController::savePassword
      */
-    public function testSavePasswordWrongOldPassword()
+    public function testSavePasswordWrongOldPassword(): void
     {
         $body = [
             'password' => 'wrongpassword',
@@ -156,10 +324,7 @@ class SettingsControllerTest extends TestCase
             $this->once()
         );
 
-        /** @var SettingsController $controller */
-        $controller = $this->app->make(SettingsController::class);
-        $controller->setValidator(new Validator());
-        $controller->savePassword($this->request);
+        $this->controller->savePassword($this->request);
 
         /** @var Session $session */
         $session = $this->app->get('session');
@@ -170,7 +335,7 @@ class SettingsControllerTest extends TestCase
     /**
      * @covers \Engelsystem\Controllers\SettingsController::savePassword
      */
-    public function testSavePasswordMismatchingNewPassword()
+    public function testSavePasswordMismatchingNewPassword(): void
     {
         $body = [
             'password' => 'password',
@@ -190,10 +355,7 @@ class SettingsControllerTest extends TestCase
             $this->once()
         );
 
-        /** @var SettingsController $controller */
-        $controller = $this->app->make(SettingsController::class);
-        $controller->setValidator(new Validator());
-        $controller->savePassword($this->request);
+        $this->controller->savePassword($this->request);
 
         /** @var Session $session */
         $session = $this->app->get('session');
@@ -201,9 +363,6 @@ class SettingsControllerTest extends TestCase
         $this->assertEquals('validation.password.confirmed', $errors[0]);
     }
 
-    /**
-     * @return array
-     */
     public function savePasswordValidationProvider(): array
     {
         return [
@@ -217,7 +376,6 @@ class SettingsControllerTest extends TestCase
     /**
      * @covers \Engelsystem\Controllers\SettingsController::savePassword
      * @dataProvider savePasswordValidationProvider
-     * @param string $password
      * @param string $new_password
      * @param string $new_password2
      */
@@ -225,7 +383,7 @@ class SettingsControllerTest extends TestCase
         ?string $password,
         ?string $newPassword,
         ?string $newPassword2
-    ) {
+    ): void {
         $body = [
             'password' => $password,
             'new_password' => $newPassword,
@@ -238,17 +396,14 @@ class SettingsControllerTest extends TestCase
 
         $this->expectException(ValidationException::class);
 
-        /** @var SettingsController $controller */
-        $controller = $this->app->make(SettingsController::class);
-        $controller->setValidator(new Validator());
-        $controller->savePassword($this->request);
+        $this->controller->savePassword($this->request);
     }
 
     /**
      * @testdox theme: underNormalConditions -> returnsCorrectViewAndData
      * @covers \Engelsystem\Controllers\SettingsController::theme
      */
-    public function testThemeUnderNormalConditionReturnsCorrectViewAndData()
+    public function testThemeUnderNormalConditionReturnsCorrectViewAndData(): void
     {
         $this->setExpects($this->auth, 'user', null, $this->user, $this->once());
 
@@ -266,48 +421,40 @@ class SettingsControllerTest extends TestCase
                 return $this->response;
             });
 
-        /** @var SettingsController $controller */
-        $controller = $this->app->make(SettingsController::class);
-        $controller->theme();
+        $this->controller->theme();
     }
 
     /**
      * @testdox saveTheme: withNoSelectedThemeGiven -> throwsException
      * @covers \Engelsystem\Controllers\SettingsController::saveTheme
      */
-    public function testSaveThemeWithNoSelectedThemeGivenThrowsException()
+    public function testSaveThemeWithNoSelectedThemeGivenThrowsException(): void
     {
         $this->setExpects($this->auth, 'user', null, $this->user, $this->once());
         $this->expectException(ValidationException::class);
 
-        /** @var SettingsController $controller */
-        $controller = $this->app->make(SettingsController::class);
-        $controller->setValidator(new Validator());
-        $controller->saveTheme($this->request);
+        $this->controller->saveTheme($this->request);
     }
 
     /**
      * @testdox saveTheme: withUnknownSelectedThemeGiven -> throwsException
      * @covers \Engelsystem\Controllers\SettingsController::saveTheme
      */
-    public function testSaveThemeWithUnknownSelectedThemeGivenThrowsException()
+    public function testSaveThemeWithUnknownSelectedThemeGivenThrowsException(): void
     {
         $this->request = $this->request->withParsedBody(['select_theme' => 2]);
 
         $this->setExpects($this->auth, 'user', null, $this->user, $this->once());
         $this->expectException(HttpNotFound::class);
 
-        /** @var SettingsController $controller */
-        $controller = $this->app->make(SettingsController::class);
-        $controller->setValidator(new Validator());
-        $controller->saveTheme($this->request);
+        $this->controller->saveTheme($this->request);
     }
 
     /**
      * @testdox saveTheme: withKnownSelectedThemeGiven -> savesThemeAndRedirect
      * @covers \Engelsystem\Controllers\SettingsController::saveTheme
      */
-    public function testSaveThemeWithKnownSelectedThemeGivenSavesThemeAndRedirect()
+    public function testSaveThemeWithKnownSelectedThemeGivenSavesThemeAndRedirect(): void
     {
         $this->assertEquals(1, $this->user->settings->theme);
         $this->setExpects($this->auth, 'user', null, $this->user, $this->once());
@@ -318,10 +465,7 @@ class SettingsControllerTest extends TestCase
 
         $this->request = $this->request->withParsedBody(['select_theme' => 0]);
 
-        /** @var SettingsController $controller */
-        $controller = $this->app->make(SettingsController::class);
-        $controller->setValidator(new Validator());
-        $controller->saveTheme($this->request);
+        $this->controller->saveTheme($this->request);
 
         $this->assertEquals(0, $this->user->settings->theme);
     }
@@ -330,7 +474,7 @@ class SettingsControllerTest extends TestCase
      * @testdox language: underNormalConditions -> returnsCorrectViewAndData
      * @covers \Engelsystem\Controllers\SettingsController::language
      */
-    public function testLanguageUnderNormalConditionReturnsCorrectViewAndData()
+    public function testLanguageUnderNormalConditionReturnsCorrectViewAndData(): void
     {
         $this->setExpects($this->auth, 'user', null, $this->user, $this->once());
 
@@ -348,48 +492,40 @@ class SettingsControllerTest extends TestCase
                 return $this->response;
             });
 
-        /** @var SettingsController $controller */
-        $controller = $this->app->make(SettingsController::class);
-        $controller->language();
+        $this->controller->language();
     }
 
     /**
      * @testdox saveLanguage: withNoSelectedLanguageGiven -> throwsException
      * @covers \Engelsystem\Controllers\SettingsController::saveLanguage
      */
-    public function testSaveLanguageWithNoSelectedLanguageGivenThrowsException()
+    public function testSaveLanguageWithNoSelectedLanguageGivenThrowsException(): void
     {
         $this->setExpects($this->auth, 'user', null, $this->user, $this->once());
         $this->expectException(ValidationException::class);
 
-        /** @var SettingsController $controller */
-        $controller = $this->app->make(SettingsController::class);
-        $controller->setValidator(new Validator());
-        $controller->saveLanguage($this->request);
+        $this->controller->saveLanguage($this->request);
     }
 
     /**
      * @testdox saveLanguage: withUnknownSelectedLanguageGiven -> throwsException
      * @covers \Engelsystem\Controllers\SettingsController::saveLanguage
      */
-    public function testSaveLanguageWithUnknownSelectedLanguageGivenThrowsException()
+    public function testSaveLanguageWithUnknownSelectedLanguageGivenThrowsException(): void
     {
         $this->request = $this->request->withParsedBody(['select_language' => 'unknown']);
 
         $this->setExpects($this->auth, 'user', null, $this->user, $this->once());
         $this->expectException(HttpNotFound::class);
 
-        /** @var SettingsController $controller */
-        $controller = $this->app->make(SettingsController::class);
-        $controller->setValidator(new Validator());
-        $controller->saveLanguage($this->request);
+        $this->controller->saveLanguage($this->request);
     }
 
     /**
      * @testdox saveLanguage: withKnownSelectedLanguageGiven -> savesLanguageAndUpdatesSessionAndRedirect
      * @covers \Engelsystem\Controllers\SettingsController::saveLanguage
      */
-    public function testSaveLanguageWithKnownSelectedLanguageGivenSavesLanguageAndUpdatesSessionAndRedirect()
+    public function testSaveLanguageWithKnownSelectedLanguageGivenSavesLanguageAndUpdatesSessionAndRedirect(): void
     {
         $this->assertEquals('en_US', $this->user->settings->language);
         $this->session->set('locale', 'en_US');
@@ -402,10 +538,7 @@ class SettingsControllerTest extends TestCase
 
         $this->request = $this->request->withParsedBody(['select_language' => 'de_DE']);
 
-        /** @var SettingsController $controller */
-        $controller = $this->app->make(SettingsController::class);
-        $controller->setValidator(new Validator());
-        $controller->saveLanguage($this->request);
+        $this->controller->saveLanguage($this->request);
 
         $this->assertEquals('de_DE', $this->user->settings->language);
         $this->assertEquals('de_DE', $this->session->get('locale'));
@@ -415,7 +548,7 @@ class SettingsControllerTest extends TestCase
      * @covers \Engelsystem\Controllers\SettingsController::__construct
      * @covers \Engelsystem\Controllers\SettingsController::oauth
      */
-    public function testOauth()
+    public function testOauth(): void
     {
         $providers = ['foo' => ['lorem' => 'ipsum']];
         config(['oauth' => $providers]);
@@ -430,72 +563,61 @@ class SettingsControllerTest extends TestCase
                 return $this->response;
             });
 
-        /** @var SettingsController $controller */
-        $controller = $this->app->make(SettingsController::class);
-        $controller->oauth();
+        $this->controller->oauth();
     }
 
     /**
      * @covers \Engelsystem\Controllers\SettingsController::oauth
      */
-    public function testOauthNotConfigured()
+    public function testOauthNotConfigured(): void
     {
         config(['oauth' => []]);
 
-        /** @var SettingsController $controller */
-        $controller = $this->app->make(SettingsController::class);
-
         $this->expectException(HttpNotFound::class);
-        $controller->oauth();
+        $this->controller->oauth();
     }
 
     /**
      * @covers \Engelsystem\Controllers\SettingsController::settingsMenu
      * @covers \Engelsystem\Controllers\SettingsController::checkOauthHidden
      */
-    public function testSettingsMenuWithOAuth()
+    public function testSettingsMenuWithOAuth(): void
     {
         $providers = ['foo' => ['lorem' => 'ipsum']];
         $providersHidden = ['foo' => ['lorem' => 'ipsum', 'hidden' => true]];
         config(['oauth' => $providers]);
 
-        /** @var SettingsController $controller */
-        $controller = $this->app->make(SettingsController::class);
-
         $this->assertEquals([
-            'http://localhost/user-settings' => 'settings.profile',
+            'http://localhost/settings/profile' => 'settings.profile',
             'http://localhost/settings/password' => 'settings.password',
             'http://localhost/settings/language' => 'settings.language',
             'http://localhost/settings/theme' => 'settings.theme',
             'http://localhost/settings/oauth' => ['title' => 'settings.oauth', 'hidden' => false]
-        ], $controller->settingsMenu());
+        ], $this->controller->settingsMenu());
 
         config(['oauth' => $providersHidden]);
         $this->assertEquals([
-            'http://localhost/user-settings' => 'settings.profile',
+            'http://localhost/settings/profile' => 'settings.profile',
             'http://localhost/settings/password' => 'settings.password',
             'http://localhost/settings/language' => 'settings.language',
             'http://localhost/settings/theme' => 'settings.theme',
             'http://localhost/settings/oauth' => ['title' => 'settings.oauth', 'hidden' => true]
-        ], $controller->settingsMenu());
+        ], $this->controller->settingsMenu());
     }
 
     /**
      * @covers \Engelsystem\Controllers\SettingsController::settingsMenu
      */
-    public function testSettingsMenuWithoutOAuth()
+    public function testSettingsMenuWithoutOAuth(): void
     {
         config(['oauth' => []]);
 
-        /** @var SettingsController $controller */
-        $controller = $this->app->make(SettingsController::class);
-
         $this->assertEquals([
-            'http://localhost/user-settings' => 'settings.profile',
+            'http://localhost/settings/profile' => 'settings.profile',
             'http://localhost/settings/password' => 'settings.password',
             'http://localhost/settings/language' => 'settings.language',
             'http://localhost/settings/theme' => 'settings.theme'
-        ], $controller->settingsMenu());
+        ], $this->controller->settingsMenu());
     }
 
     /**
@@ -504,7 +626,6 @@ class SettingsControllerTest extends TestCase
     public function setUp(): void
     {
         parent::setUp();
-        $this->initDatabase();
 
         $themes = [
             0 => ['name' => 'Engelsystem light'],
@@ -514,32 +635,31 @@ class SettingsControllerTest extends TestCase
             'en_US' => 'English',
             'de_DE' => 'Deutsch'
         ];
-        $this->config = new Config(['min_password_length' => 6, 'themes' => $themes, 'locales' => $languages]);
+        $tshirt_sizes = ['S' => 'Small'];
+        $this->config = new Config([
+            'min_password_length' => 6,
+            'themes' => $themes,
+            'locales' => $languages,
+            'tshirt_sizes' => $tshirt_sizes
+        ]);
         $this->app->instance('config', $this->config);
         $this->app->instance(Config::class, $this->config);
 
-        $this->request = Request::create('http://localhost');
-        $this->app->instance('request', $this->request);
-        $this->app->instance(Request::class, $this->request);
-        $this->app->instance(ServerRequestInterface::class, $this->request);
-
-        $this->response = $this->createMock(Response::class);
-        $this->app->instance(Response::class, $this->response);
-
-        $this->app->bind(UrlGeneratorInterface::class, UrlGenerator::class);
         $this->app->bind('http.urlGenerator', UrlGenerator::class);
-
-        $this->log = new TestLogger();
-        $this->app->instance(LoggerInterface::class, $this->log);
-
-        $this->session = new Session(new MockArraySessionStorage());
-        $this->app->instance('session', $this->session);
 
         $this->auth = $this->createMock(Authenticator::class);
         $this->app->instance(Authenticator::class, $this->auth);
 
         $this->user = User::factory()
-            ->has(Settings::factory(['theme' => 1, 'language' => 'en_US']))
+            ->has(Settings::factory([
+                'theme' => 1,
+                'language' => 'en_US',
+                'email_goody' => false,
+                'mobile_show' => false,
+            ]))
             ->create();
+
+        $this->controller = $this->app->make(SettingsController::class);
+        $this->controller->setValidator(new Validator());
     }
 }

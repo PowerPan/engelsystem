@@ -2,8 +2,9 @@
 
 use Carbon\Carbon;
 use Engelsystem\Database\Database;
-use Engelsystem\Database\Db;
 use Engelsystem\Events\Listener\OAuth2;
+use Engelsystem\Models\AngelType;
+use Engelsystem\Models\Group;
 use Engelsystem\Models\OAuth;
 use Engelsystem\Models\User\Contact;
 use Engelsystem\Models\User\PersonalData;
@@ -36,6 +37,7 @@ function guest_register()
     $min_password_length = config('min_password_length');
     $enable_password = config('enable_password');
     $enable_pronoun = config('enable_pronoun');
+    $enable_mobile_show = config('enable_mobile_show');
     $config = config();
     $request = request();
     $session = session();
@@ -49,6 +51,7 @@ function guest_register()
     $preName = '';
     $dect = '';
     $mobile = '';
+    $mobile_show = false;
     $email = '';
     $pronoun = '';
     $email_shiftinfo = false;
@@ -60,7 +63,7 @@ function guest_register()
     $selected_angel_types = [];
     $planned_arrival_date = null;
 
-    $angel_types_source = AngelTypes();
+    $angel_types_source = AngelType::all();
     $angel_types = [];
     if (!empty($session->get('oauth2_groups'))) {
         /** @var OAuth2 $oauth */
@@ -73,10 +76,13 @@ function guest_register()
         }
     }
     foreach ($angel_types_source as $angel_type) {
-        $angel_types[$angel_type['id']] = $angel_type['name']
-            . ($angel_type['restricted'] ? ' (' . __('Requires introduction') . ')' : '');
-        if (!$angel_type['restricted']) {
-            $selected_angel_types[] = $angel_type['id'];
+        if ($angel_type->hide_register) {
+            continue;
+        }
+        $angel_types[$angel_type->id] = $angel_type->name
+            . ($angel_type->restricted ? ' (' . __('Requires introduction') . ')' : '');
+        if (!$angel_type->restricted) {
+            $selected_angel_types[] = $angel_type->id;
         }
     }
 
@@ -107,8 +113,10 @@ function guest_register()
 
             if (!$nickValidation->isValid()) {
                 $valid = false;
-                $msg .= error(sprintf(__('Please enter a valid nick.') . ' ' . __('Use up to 24 letters, numbers, connecting punctuations or spaces for your nickname.'),
-                    $nick), true);
+                $msg .= error(sprintf(
+                    __('Please enter a valid nick.') . ' ' . __('Use up to 24 letters, numbers, connecting punctuations or spaces for your nickname.'),
+                    $nick
+                ), true);
             }
             if (User::whereName($nick)->count() > 0) {
                 $valid = false;
@@ -117,6 +125,10 @@ function guest_register()
         } else {
             $valid = false;
             $msg .= error(__('Please enter a nickname.'), true);
+        }
+
+        if ($request->has('mobile_show') && $enable_mobile_show) {
+            $mobile_show = true;
         }
 
         if ($request->has('email') && strlen(strip_request_item('email')) > 0) {
@@ -164,7 +176,7 @@ function guest_register()
                 $valid = false;
                 $msg .= error(__('Your passwords don\'t match.'), true);
             }
-        } else if ($enable_password) {
+        } elseif ($enable_password) {
             $valid = false;
             $msg .= error(sprintf(
                 __('Your password is too short (please use at least %s characters).'),
@@ -253,6 +265,7 @@ function guest_register()
                 'email_goody'     => $email_goody,
                 'email_shiftinfo' => $email_shiftinfo,
                 'email_news'      => $email_news,
+                'mobile_show'     => $mobile_show,
             ]);
             $settings->user()
                 ->associate($user)
@@ -287,7 +300,8 @@ function guest_register()
             }
 
             // Assign user-group and set password
-            Db::insert('INSERT INTO `UserGroups` (`uid`, `group_id`) VALUES (?, -20)', [$user->id]);
+            $defaultGroup = Group::find(auth()->getDefaultRole());
+            $user->groups()->attach($defaultGroup);
             if ($enable_password) {
                 auth()->setPassword($user, $request->postData('password'));
             }
@@ -295,11 +309,9 @@ function guest_register()
             // Assign angel-types
             $user_angel_types_info = [];
             foreach ($selected_angel_types as $selected_angel_type_id) {
-                Db::insert(
-                    'INSERT INTO `UserAngelTypes` (`user_id`, `angeltype_id`, `supporter`) VALUES (?, ?, FALSE)',
-                    [$user->id, $selected_angel_type_id]
-                );
-                $user_angel_types_info[] = $angel_types[$selected_angel_type_id];
+                $angelType = AngelType::findOrFail($selected_angel_type_id);
+                $user->userAngelTypes()->attach($angelType);
+                $user_angel_types_info[] = $angelType->name;
             }
 
             // Commit complete user data
@@ -378,8 +390,10 @@ function guest_register()
                         24,
                         'nickname'
                     ),
-                    form_info('',
-                        __('Use up to 24 letters, numbers, connecting punctuations or spaces for your nickname.'))
+                    form_info(
+                        '',
+                        __('Use up to 24 letters, numbers, connecting punctuations or spaces for your nickname.')
+                    )
                 ]),
 
                 $enable_pronoun ? div('col', [
@@ -438,33 +452,44 @@ function guest_register()
                 ]) : '',
 
                 div('col', [
-                    form_text('mobile', __('Mobile'), $mobile, false, 40, 'tel-national')
+                    form_text('mobile', __('Mobile'), $mobile, false, 40, 'tel-national'),
+                    $enable_mobile_show ? form_checkbox(
+                        'mobile_show',
+                        __('Show mobile number to other users to contact me'),
+                        $mobile_show
+                    ) : ''
                 ])
             ]),
 
             div('row', [
                 $enable_password ? div('col', [
-                    form_password('password', __('Password') . ' ' . entry_required())
+                    form_password('password', __('Password') . ' ' . entry_required(), 'new-password')
                 ]) : '',
 
                 $enable_planned_arrival ? div('col', [
                     form_date(
                         'planned_arrival_date',
                         __('Planned date of arrival') . ' ' . entry_required(),
-                        $planned_arrival_date, $buildup_start_date, $teardown_end_date
+                        $planned_arrival_date,
+                        $buildup_start_date,
+                        $teardown_end_date
                     )
                 ]) : '',
             ]),
 
             div('row', [
                 $enable_password ? div('col', [
-                    form_password('password2', __('Confirm password') . ' ' . entry_required())
+                    form_password('password2', __('Confirm password') . ' ' . entry_required(), 'new-password')
                 ]) : '',
 
                 div('col', [
-                    $enable_tshirt_size ? form_select('tshirt_size',
+                    $enable_tshirt_size ? form_select(
+                        'tshirt_size',
                         __('Shirt size') . ' ' . entry_required(),
-                        $tshirt_sizes, $tshirt_size, __('Please select...')) : ''
+                        $tshirt_sizes,
+                        $tshirt_size,
+                        __('Please select...')
+                    ) : ''
                 ]),
             ]),
 

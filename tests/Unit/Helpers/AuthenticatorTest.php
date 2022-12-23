@@ -3,6 +3,8 @@
 namespace Engelsystem\Test\Unit\Helpers;
 
 use Engelsystem\Helpers\Authenticator;
+use Engelsystem\Models\Group;
+use Engelsystem\Models\Privilege;
 use Engelsystem\Models\User\User;
 use Engelsystem\Test\Unit\HasDatabase;
 use Engelsystem\Test\Unit\Helpers\Stub\UserModelImplementation;
@@ -19,7 +21,7 @@ class AuthenticatorTest extends ServiceProviderTest
      * @covers \Engelsystem\Helpers\Authenticator::__construct
      * @covers \Engelsystem\Helpers\Authenticator::user
      */
-    public function testUser()
+    public function testUser(): void
     {
         /** @var ServerRequestInterface|MockObject $request */
         $request = $this->getMockForAbstractClass(ServerRequestInterface::class);
@@ -62,7 +64,7 @@ class AuthenticatorTest extends ServiceProviderTest
     /**
      * @covers \Engelsystem\Helpers\Authenticator::apiUser
      */
-    public function testApiUser()
+    public function testApiUser(): void
     {
         /** @var ServerRequestInterface|MockObject $request */
         $request = $this->getMockForAbstractClass(ServerRequestInterface::class);
@@ -106,16 +108,25 @@ class AuthenticatorTest extends ServiceProviderTest
     /**
      * @covers \Engelsystem\Helpers\Authenticator::can
      */
-    public function testCan()
+    public function testCan(): void
     {
+        $this->initDatabase();
+
         /** @var ServerRequestInterface|MockObject $request */
         $request = $this->getMockForAbstractClass(ServerRequestInterface::class);
         /** @var Session|MockObject $session */
         $session = $this->createMock(Session::class);
         /** @var UserModelImplementation|MockObject $userRepository */
         $userRepository = new UserModelImplementation();
-        /** @var User|MockObject $user */
-        $user = $this->createMock(User::class);
+        /** @var User $user */
+        $user = User::factory()->create();
+        /** @var Group $group */
+        $group = Group::factory()->create();
+        /** @var Privilege $privilege */
+        $privilege = Privilege::factory()->create(['name' => 'bar']);
+
+        $user->groups()->attach($group);
+        $group->privileges()->attach($privilege);
 
         $session->expects($this->once())
             ->method('get')
@@ -128,19 +139,13 @@ class AuthenticatorTest extends ServiceProviderTest
         /** @var Authenticator|MockObject $auth */
         $auth = $this->getMockBuilder(Authenticator::class)
             ->setConstructorArgs([$request, $session, $userRepository])
-            ->onlyMethods(['getPermissionsByGroup', 'getPermissionsByUser', 'user'])
+            ->onlyMethods(['user'])
             ->getMock();
-        $auth->expects($this->exactly(1))
-            ->method('getPermissionsByGroup')
-            ->with(-10)
-            ->willReturn([]);
-        $auth->expects($this->exactly(1))
-            ->method('getPermissionsByUser')
-            ->with($user)
-            ->willReturn(['bar']);
         $auth->expects($this->exactly(2))
             ->method('user')
             ->willReturnOnConsecutiveCalls(null, $user);
+
+        Group::factory()->create(['id' => $auth->getGuestRole()]);
 
         // No user, no permissions
         $this->assertFalse($auth->can('foo'));
@@ -155,7 +160,7 @@ class AuthenticatorTest extends ServiceProviderTest
     /**
      * @covers \Engelsystem\Helpers\Authenticator::authenticate
      */
-    public function testAuthenticate()
+    public function testAuthenticate(): void
     {
         $this->initDatabase();
 
@@ -185,7 +190,7 @@ class AuthenticatorTest extends ServiceProviderTest
     /**
      * @covers \Engelsystem\Helpers\Authenticator::verifyPassword
      */
-    public function testVerifyPassword()
+    public function testVerifyPassword(): void
     {
         $this->initDatabase();
         $password = password_hash('testing', PASSWORD_ARGON2I);
@@ -213,7 +218,7 @@ class AuthenticatorTest extends ServiceProviderTest
     /**
      * @covers \Engelsystem\Helpers\Authenticator::setPassword
      */
-    public function testSetPassword()
+    public function testSetPassword(): void
     {
         $this->initDatabase();
         /** @var User $user */
@@ -237,7 +242,7 @@ class AuthenticatorTest extends ServiceProviderTest
      * @covers \Engelsystem\Helpers\Authenticator::setPasswordAlgorithm
      * @covers \Engelsystem\Helpers\Authenticator::getPasswordAlgorithm
      */
-    public function testPasswordAlgorithm()
+    public function testPasswordAlgorithm(): void
     {
         $auth = $this->getAuthenticator();
 
@@ -246,12 +251,32 @@ class AuthenticatorTest extends ServiceProviderTest
     }
 
     /**
-     * @return Authenticator
+     * @covers \Engelsystem\Helpers\Authenticator::setDefaultRole
+     * @covers \Engelsystem\Helpers\Authenticator::getDefaultRole
      */
-    protected function getAuthenticator()
+    public function testDefaultRole(): void
     {
-        return new class extends Authenticator
-        {
+        $auth = $this->getAuthenticator();
+
+        $auth->setDefaultRole(1337);
+        $this->assertEquals(1337, $auth->getDefaultRole());
+    }
+
+    /**
+     * @covers \Engelsystem\Helpers\Authenticator::setGuestRole
+     * @covers \Engelsystem\Helpers\Authenticator::getGuestRole
+     */
+    public function testGuestRole(): void
+    {
+        $auth = $this->getAuthenticator();
+
+        $auth->setGuestRole(42);
+        $this->assertEquals(42, $auth->getGuestRole());
+    }
+
+    protected function getAuthenticator(): Authenticator
+    {
+        return new class extends Authenticator {
             /** @noinspection PhpMissingParentConstructorInspection */
             public function __construct()
             {

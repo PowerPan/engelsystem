@@ -9,23 +9,23 @@ class ShiftCalendarRenderer
     /**
      * 15m * 60s/m = 900s
      */
-    const SECONDS_PER_ROW = 900;
+    public const SECONDS_PER_ROW = 900;
 
     /**
      * Height of a block in pixel.
      * Do not change - corresponds with theme/css
      */
-    const BLOCK_HEIGHT = 30;
+    public const BLOCK_HEIGHT = 30;
 
     /**
      * Distance between two shifts in pixels
      */
-    const MARGIN = 5;
+    public const MARGIN = 5;
 
     /**
      * Seconds added to the start and end time
      */
-    const TIME_MARGIN = 1800;
+    public const TIME_MARGIN = 1800;
 
     /** @var array */
     private $lanes;
@@ -42,12 +42,6 @@ class ShiftCalendarRenderer
     /** @var int */
     private $blocksPerSlot = null;
 
-    /** @var array[] */
-    private $needed_angeltypes;
-
-    /** @var array[] */
-    private $shift_entries;
-
     /**
      * ShiftCalendarRenderer constructor.
      *
@@ -56,14 +50,12 @@ class ShiftCalendarRenderer
      * @param array[]      $shift_entries
      * @param ShiftsFilter $shiftsFilter
      */
-    public function __construct($shifts, $needed_angeltypes, $shift_entries, ShiftsFilter $shiftsFilter)
+    public function __construct($shifts, private $needed_angeltypes, private $shift_entries, ShiftsFilter $shiftsFilter)
     {
         $this->shiftsFilter = $shiftsFilter;
         $this->firstBlockStartTime = $this->calcFirstBlockStartTime($shifts);
         $this->lastBlockEndTime = $this->calcLastBlockEndTime($shifts);
         $this->lanes = $this->assignShiftsToLanes($shifts);
-        $this->needed_angeltypes = $needed_angeltypes;
-        $this->shift_entries = $shift_entries;
     }
 
     /**
@@ -226,14 +218,14 @@ class ShiftCalendarRenderer
                 return div('tick day');
             }
             return div('tick day', [
-                date(__('m-d'), $time) .'<br>'.date(__('H:i'), $time)
+                date(__('m-d'), $time) . '<br>' . date(__('H:i'), $time)
             ]);
         } elseif ($time % (60 * 60) == 0) {
             if (!$label) {
                 return div('tick hour');
             }
             return div('tick hour', [
-                date(__('m-d'), $time) .'<br>'.date(__('H:i'), $time)
+                date(__('m-d'), $time) . '<br>' . date(__('H:i'), $time)
             ]);
         }
         return div('tick');
@@ -276,9 +268,9 @@ class ShiftCalendarRenderer
             }
         }
         return ShiftCalendarRenderer::SECONDS_PER_ROW * floor(
-                ($start_time - ShiftCalendarRenderer::TIME_MARGIN)
+            ($start_time - ShiftCalendarRenderer::TIME_MARGIN)
                 / ShiftCalendarRenderer::SECONDS_PER_ROW
-            );
+        );
     }
 
     /**
@@ -295,9 +287,9 @@ class ShiftCalendarRenderer
         }
 
         return ShiftCalendarRenderer::SECONDS_PER_ROW * ceil(
-                ($end_time + ShiftCalendarRenderer::TIME_MARGIN)
+            ($end_time + ShiftCalendarRenderer::TIME_MARGIN)
                 / ShiftCalendarRenderer::SECONDS_PER_ROW
-            );
+        );
     }
 
     /**

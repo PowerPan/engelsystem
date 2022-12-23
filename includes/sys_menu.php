@@ -65,10 +65,10 @@ function make_user_submenu()
 
     if (auth()->can('user_settings')) {
         $user_submenu[] = toolbar_dropdown_item(
-            page_link_to('user_settings'),
+            page_link_to('settings/profile'),
             __('Settings'),
-            $page == 'user_settings',
-            'gear'
+            $page == 'settings/profile',
+            'person-fill-gear'
         );
     }
 
@@ -192,7 +192,7 @@ function make_room_navigation($menu)
         $room_menu[] = toolbar_dropdown_item_divider();
     }
     foreach ($rooms as $room) {
-        $room_menu[] = toolbar_dropdown_item(room_link($room), $room->name, false, 'geo-alt');
+        $room_menu[] = toolbar_dropdown_item(room_link($room), $room->name, false, 'pin-map-fill');
     }
     if (count($room_menu) > 0) {
         $menu[] = toolbar_dropdown('map-marker', __('Rooms'), $room_menu);

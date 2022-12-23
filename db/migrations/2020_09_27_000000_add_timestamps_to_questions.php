@@ -4,7 +4,6 @@ namespace Engelsystem\Migrations;
 
 use Carbon\Carbon;
 use Engelsystem\Database\Migration\Migration;
-use Engelsystem\Models\Question;
 use Illuminate\Database\Schema\Blueprint;
 
 class AddTimestampsToQuestions extends Migration
@@ -16,17 +15,20 @@ class AddTimestampsToQuestions extends Migration
      */
     public function up(): void
     {
-        $this->schema->table('questions', function (Blueprint $table) {
+        $connection = $this->schema->getConnection();
+        $now = Carbon::now();
+
+        $this->schema->table('questions', function (Blueprint $table): void {
             $table->timestamp('answered_at')->after('answerer_id')->nullable();
             $table->timestamps();
         });
 
-        $now = Carbon::now();
-        Question::query()->update([
-            'created_at' => $now,
-            'updated_at' => $now,
-        ]);
-        Question::query()
+        $connection->table('questions')
+            ->update([
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]);
+        $connection->table('questions')
             ->whereNotNull('answerer_id')
             ->update([
                 'answered_at' => $now,
@@ -38,7 +40,7 @@ class AddTimestampsToQuestions extends Migration
      */
     public function down(): void
     {
-        $this->schema->table('questions', function (Blueprint $table) {
+        $this->schema->table('questions', function (Blueprint $table): void {
             $table->dropColumn('answered_at');
             $table->dropTimestamps();
         });

@@ -24,7 +24,7 @@ class FactoriesTest extends TestCase
     use HasDatabase;
 
     /** @var string[] */
-    protected $models = [
+    protected array $models = [
         Contact::class,
         Faq::class,
         License::class,
@@ -61,7 +61,7 @@ class FactoriesTest extends TestCase
      * @covers \Database\Factories\Engelsystem\Models\User\UserFactory
      * @covers \Database\Factories\Engelsystem\Models\WorklogFactory
      */
-    public function testFactories()
+    public function testFactories(): void
     {
         $this->initDatabase();
 
@@ -74,7 +74,7 @@ class FactoriesTest extends TestCase
     /**
      * @covers \Database\Factories\Engelsystem\Models\User\StateFactory
      */
-    public function testStateFactoryArrived()
+    public function testStateFactoryArrived(): void
     {
         $this->initDatabase();
 

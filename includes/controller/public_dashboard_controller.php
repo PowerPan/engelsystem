@@ -1,6 +1,8 @@
 <?php
 
+use Engelsystem\Models\AngelType;
 use Engelsystem\Models\Room;
+use Engelsystem\Models\Shifts\ShiftType;
 use Engelsystem\ShiftsFilter;
 
 /**
@@ -69,7 +71,7 @@ function public_dashboard_controller()
  */
 function public_dashboard_controller_free_shift($shift, ShiftsFilter $filter = null)
 {
-    $shifttype = ShiftType($shift['shifttype_id']);
+    $shifttype = ShiftType::find($shift['shifttype_id']);
     $room = Room::find($shift['RID']);
 
     $free_shift = [
@@ -78,7 +80,7 @@ function public_dashboard_controller_free_shift($shift, ShiftsFilter $filter = n
         'start'          => date('H:i', $shift['start']),
         'end'            => date('H:i', $shift['end']),
         'duration'       => round(($shift['end'] - $shift['start']) / 3600),
-        'shifttype_name' => $shifttype['name'],
+        'shifttype_name' => $shifttype->name,
         'title'          => $shift['title'],
         'room_name'      => $room->name,
         'needed_angels'  => public_dashboard_needed_angels($shift['NeedAngels'], $filter),
@@ -108,11 +110,11 @@ function public_dashboard_needed_angels($needed_angels, ShiftsFilter $filter = n
     foreach ($needed_angels as $needed_angel) {
         $need = $needed_angel['count'] - $needed_angel['taken'];
         if ($need > 0 && (!$filter || in_array($needed_angel['TID'], $filter->getTypes()))) {
-            $angeltype = AngelType($needed_angel['TID']);
-            if ($angeltype['show_on_dashboard']) {
+            $angeltype = AngelType::find($needed_angel['TID']);
+            if ($angeltype->show_on_dashboard) {
                 $result[] = [
                     'need'           => $need,
-                    'angeltype_name' => $angeltype['name']
+                    'angeltype_name' => $angeltype->name
                 ];
             }
         }

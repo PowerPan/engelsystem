@@ -22,9 +22,9 @@ class UserShirtControllerTest extends ControllerTest
      * @covers \Engelsystem\Controllers\Admin\UserShirtController::editShirt
      * @covers \Engelsystem\Controllers\Admin\UserShirtController::__construct
      */
-    public function testIndex()
+    public function testIndex(): void
     {
-        $request = $this->request->withAttribute('id', 1);
+        $request = $this->request->withAttribute('user_id', 1);
         /** @var Authenticator|MockObject $auth */
         $auth = $this->createMock(Authenticator::class);
         /** @var Redirector|MockObject $redirector */
@@ -42,7 +42,7 @@ class UserShirtControllerTest extends ControllerTest
     /**
      * @covers \Engelsystem\Controllers\Admin\UserShirtController::editShirt
      */
-    public function testIndexUserNotFound()
+    public function testIndexUserNotFound(): void
     {
         /** @var Authenticator|MockObject $auth */
         $auth = $this->createMock(Authenticator::class);
@@ -59,10 +59,10 @@ class UserShirtControllerTest extends ControllerTest
     /**
      * @covers \Engelsystem\Controllers\Admin\UserShirtController::saveShirt
      */
-    public function testSaveShirt()
+    public function testSaveShirt(): void
     {
         $request = $this->request
-            ->withAttribute('id', 1)
+            ->withAttribute('user_id', 1)
             ->withParsedBody([
                 'shirt_size' => 'S',
             ]);
@@ -147,7 +147,7 @@ class UserShirtControllerTest extends ControllerTest
     /**
      * @covers \Engelsystem\Controllers\Admin\UserShirtController::saveShirt
      */
-    public function testSaveShirtUserNotFound()
+    public function testSaveShirtUserNotFound(): void
     {
         /** @var Authenticator|MockObject $auth */
         $auth = $this->createMock(Authenticator::class);

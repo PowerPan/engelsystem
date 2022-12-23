@@ -52,7 +52,7 @@ function tabs($tabs, $selected = 0)
             $id = null;
         }
         $tab_header[] = '<li role="presentation" class="nav-item">
-                <a href="'. $href . '" class="nav-link' . ($active ? ' active' : '') . '" role="tab"'
+                <a href="' . $href . '" class="nav-link' . ($active ? ' active' : '') . '" role="tab"'
             . ($id ? ' id="' . $id . '-tab"' : '')
             . ($id ? ' aria-controls="' . $id . '" data-bs-target="#' . $id . '" data-bs-toggle="tab" role="tab"' : '')
             . ($id && $active ? ' aria-selected="true"' : ' aria-selected="false"')
@@ -87,7 +87,7 @@ function mute($text)
  * Renders a bootstrap label with given content and class.
  *
  * @param string $content The text
- * @param string $class   default, primary, info, success, warning, danger
+ * @param string $class default, primary, info, success, warning, danger
  * @return string
  */
 function badge($content, $class = 'default')
@@ -120,7 +120,6 @@ function progress_bar($valuemin, $valuemax, $valuenow, $class = '', $content = '
  *
  * @param string $icon_name
  * @param string $class
- *
  * @return string
  */
 function icon(string $icon_name, string $class = ''): string
@@ -221,7 +220,7 @@ function toolbar_dropdown_item_divider(): string
  */
 function toolbar_dropdown($icon, $label, $submenu, $class = ''): string
 {
-    $template =<<<EOT
+    $template = <<<EOT
 <li class="nav-item dropdown">
     <a class="nav-link dropdown-toggle {class}" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
         {icon} {label}
@@ -322,9 +321,9 @@ function description($data)
 /**
  * Rendert eine Datentabelle
  *
- * @param array|string $columns
- * @param array[]      $rows_raw
- * @param bool         $data
+ * @param array|string        $columns
+ * @param array[]|ArrayAccess $rows_raw
+ * @param bool                $data
  * @return string
  */
 function table($columns, $rows_raw, $data = true)
@@ -389,15 +388,18 @@ function render_table($columns, $rows, $data = true)
  * @param string $href
  * @param string $label
  * @param string $class
+ * @param string $id
  * @return string
  */
-function button($href, $label, $class = '')
+function button($href, $label, $class = '', $id = '')
 {
     if (!Str::contains(str_replace(['btn-sm', 'btn-xl'], '', $class), 'btn-')) {
         $class = 'btn-secondary' . ($class ? ' ' . $class : '');
     }
 
-    return '<a href="' . $href . '" class="btn ' . $class . '">' . $label . '</a>';
+    $idAttribute = $id ? 'id="' . $id . '"' : '';
+
+    return '<a ' . $idAttribute . ' href="' . $href . '" class="btn ' . $class . '">' . $label . '</a>';
 }
 
 /**

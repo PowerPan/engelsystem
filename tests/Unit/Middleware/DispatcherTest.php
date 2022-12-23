@@ -3,8 +3,10 @@
 namespace Engelsystem\Test\Unit\Middleware;
 
 use Engelsystem\Application;
+use Engelsystem\Http\Request;
+use Engelsystem\Http\Response;
 use Engelsystem\Middleware\Dispatcher;
-use Engelsystem\Test\Unit\Middleware\Stub\NotARealMiddleware;
+use Engelsystem\Test\Unit\Middleware\Stub\ReturnResponseMiddlewareHandler;
 use InvalidArgumentException;
 use LogicException;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -14,13 +16,14 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use ReflectionClass as Reflection;
+use TypeError;
 
 class DispatcherTest extends TestCase
 {
     /**
      * @covers \Engelsystem\Middleware\Dispatcher::__construct
      */
-    public function testInit()
+    public function testInit(): void
     {
         /** @var Application|MockObject $container */
         $container = $this->createMock(Application::class);
@@ -38,7 +41,7 @@ class DispatcherTest extends TestCase
     /**
      * @covers \Engelsystem\Middleware\Dispatcher::process
      */
-    public function testProcess()
+    public function testProcess(): void
     {
         /** @var ServerRequestInterface|MockObject $request */
         $request = $this->createMock(ServerRequestInterface::class);
@@ -69,7 +72,7 @@ class DispatcherTest extends TestCase
     /**
      * @covers \Engelsystem\Middleware\Dispatcher::handle
      */
-    public function testHandle()
+    public function testHandle(): void
     {
         /** @var ServerRequestInterface|MockObject $request */
         $request = $this->createMock(ServerRequestInterface::class);
@@ -91,7 +94,7 @@ class DispatcherTest extends TestCase
     /**
      * @covers \Engelsystem\Middleware\Dispatcher::handle
      */
-    public function testHandleNext()
+    public function testHandleNext(): void
     {
         /** @var ServerRequestInterface|MockObject $request */
         $request = $this->createMock(ServerRequestInterface::class);
@@ -118,7 +121,7 @@ class DispatcherTest extends TestCase
     /**
      * @covers \Engelsystem\Middleware\Dispatcher::handle
      */
-    public function testHandleNoMiddleware()
+    public function testHandleNoMiddleware(): void
     {
         /** @var ServerRequestInterface|MockObject $request */
         $request = $this->createMock(ServerRequestInterface::class);
@@ -132,21 +135,7 @@ class DispatcherTest extends TestCase
     /**
      * @covers \Engelsystem\Middleware\Dispatcher::handle
      */
-    public function testHandleNoRealMiddleware()
-    {
-        /** @var ServerRequestInterface|MockObject $request */
-        $request = $this->createMock(ServerRequestInterface::class);
-
-        $this->expectException(InvalidArgumentException::class);
-
-        $dispatcher = new Dispatcher([new NotARealMiddleware()]);
-        $dispatcher->handle($request);
-    }
-
-    /**
-     * @covers \Engelsystem\Middleware\Dispatcher::handle
-     */
-    public function testHandleCallResolve()
+    public function testHandleCallResolve(): void
     {
         /** @var ServerRequestInterface|MockObject $request */
         $request = $this->createMock(ServerRequestInterface::class);
@@ -174,14 +163,25 @@ class DispatcherTest extends TestCase
         $return = $dispatcher->handle($request);
         $this->assertEquals($response, $return);
 
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(TypeError::class);
         $dispatcher->handle($request);
+    }
+
+    /**
+     * @covers \Engelsystem\Middleware\Dispatcher::handle
+     */
+    public function testHandleCallResolveInvalidTypeResolved(): void
+    {
+        $instance = new Dispatcher([new ReturnResponseMiddlewareHandler(new Response())]);
+
+        $this->expectException(InvalidArgumentException::class);
+        $instance->handle(new Request());
     }
 
     /**
      * @covers \Engelsystem\Middleware\Dispatcher::setContainer
      */
-    public function testSetContainer()
+    public function testSetContainer(): void
     {
         /** @var Application|MockObject $container */
         $container = $this->createMock(Application::class);

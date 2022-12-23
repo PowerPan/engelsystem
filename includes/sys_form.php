@@ -20,34 +20,24 @@ function form_hidden($name, $value)
  *
  * @param string $name
  * @param string $label
- * @param string $value
+ * @param int    $value
  * @return string
  */
-function form_spinner($name, $label, $value)
+function form_spinner(string $name, string $label, int $value)
 {
-    $value = htmlspecialchars((string)$value);
+    $id = 'spinner-' . $name;
 
     return form_element($label, '
         <div class="input-group">
-            <input id="spinner-' . $name . '" class="form-control" name="' . $name . '" value="' . $value . '" />
-            <button id="spinner-' . $name . '-down" class="btn btn-secondary" type="button">
+            <input id="' . $id . '" class="form-control" type="number" min="0" step="1" name="' . $name . '" value="' . $value . '" />
+            <button class="btn btn-secondary spinner-down" type="button" data-input-id="' . $id . '">
                 ' . icon('dash-lg') . '
             </button>
-            <button id="spinner-' . $name . '-up" class="btn btn-secondary" type="button">
+            <button class="btn btn-secondary spinner-up" type="button" data-input-id="' . $id . '">
                 ' . icon('plus-lg') . '
             </button>
         </div>
-        <script type="text/javascript">
-            $(\'#spinner-' . $name . '-down\').click(function() {
-                let spinner = $(\'#spinner-' . $name . '\');
-                spinner.val(parseInt(spinner.val()) - 1);
-            });
-            $(\'#spinner-' . $name . '-up\').click(function() {
-                let spinner = $(\'#spinner-' . $name . '\');
-                spinner.val(parseInt(spinner.val()) + 1);
-            });
-        </script>
-        ');
+        ', $id);
 }
 
 /**
@@ -68,11 +58,11 @@ function form_date($name, $label, $value, $start_date = '', $end_date = '')
     $start_date = is_numeric($start_date) ? date('Y-m-d', $start_date) : '';
     $end_date = is_numeric($end_date) ? date('Y-m-d', $end_date) : '';
 
-    return form_element($label, '
-    <div class="input-group date" id="' . $dom_id . '">
-        <input type="date" placeholder="YYYY-MM-DD" pattern="[0-9]{4}-[0-9]{2}-[0-9]{2}" min="' . $start_date . '" max="' . $end_date . '" name="' . $name . '" class="form-control" value="' . htmlspecialchars((string)$value) . '" autocomplete="off">
-    </div>
-    ', $dom_id);
+    return form_element(
+        $label,
+        '<input class="form-control" id="' . $dom_id . '" type="date" placeholder="YYYY-MM-DD" pattern="[0-9]{4}-[0-9]{2}-[0-9]{2}" min="' . $start_date . '" max="' . $end_date . '" name="' . $name . '" value="' . htmlspecialchars((string)$value) . '" autocomplete="off">',
+        $dom_id
+    );
 }
 
 /**
@@ -92,12 +82,9 @@ function form_datetime(string $name, string $label, $value)
     }
 
     return form_element($label, sprintf('
-    <div class="input-group datetime" id="%s">
-        <input type="datetime-local"
+        <input class="form-control" id="%s" type="datetime-local"
             pattern="[0-9]{4}-[0-9]{2}-[0-9]{2} ([01][0-9]|2[0-3]):[0-5][0-9]" placeholder="YYYY-MM-DD HH:MM"
-            name="%s"
-            class="form-control" value="%s" autocomplete="off">
-    </div>
+            name="%s" value="%s" autocomplete="off">
     ', $dom_id, $name, htmlspecialchars($value ? $value->format('Y-m-d H:i') : '')), $dom_id);
 }
 
@@ -120,49 +107,6 @@ function form_checkboxes($name, $label, $items, $selected)
 }
 
 /**
- * Rendert eine Tabelle von Checkboxen für ein Formular
- *
- * @param string[] $names    Assoziatives Array mit Namen der Checkboxen als Keys und Überschriften als Values
- * @param string   $label    Die Beschriftung der gesamten Tabelle
- * @param string[] $items    Array mit den Beschriftungen der Zeilen
- * @param array[]  $selected Mehrdimensionales Array, wobei $selected[foo] ein Array der in der Datenreihe foo
- *                           markierten Checkboxen ist
- * @param array    $disabled Wie selected, nur dass die entsprechenden Checkboxen deaktiviert statt markiert sind
- * @return string
- */
-function form_multi_checkboxes($names, $label, $items, $selected, $disabled = [])
-{
-    $html = '<table><thead><tr>';
-    foreach ($names as $title) {
-        $html .= '<th>' . $title . '</th>';
-    }
-    $html .= '</tr></thead><tbody>';
-    foreach ($items as $key => $item) {
-        $html .= '<tr>';
-        $dom_id = '';
-        foreach ($names as $name => $title) {
-            $dom_id = $name . '_' . $key;
-            $sel = in_array($key, $selected[$name]) ? ' checked="checked"' : '';
-            if (!empty($disabled) && !empty($disabled[$name]) && in_array($key, $disabled[$name])) {
-                $sel .= ' disabled="disabled"';
-            }
-            $html .= '<td style="text-align: center;">'
-                . sprintf(
-                    '<input type="checkbox" id="%s" name="%s[]" value="%s" %s />',
-                    $dom_id,
-                    $name,
-                    $key,
-                    $sel
-                )
-                . '</td>';
-        }
-        $html .= '<td><label for="' . $dom_id . '">' . $item . '</label></td></tr>';
-    }
-    $html .= '</tbody></table>';
-    return form_element($label, $html);
-}
-
-/**
  * Rendert eine Checkbox
  *
  * @param string $name
@@ -178,9 +122,9 @@ function form_checkbox($name, $label, $selected, $value = 'checked', $html_id = 
         $html_id = $name;
     }
 
-    return '<div class="checkbox"><label>'
-        . '<input type="checkbox" id="' . $html_id . '" name="' . $name . '" value="' . htmlspecialchars((string)$value) . '" '
-        . ($selected ? ' checked="checked"' : '') . ' /> '
+    return '<div class="form-check">'
+        . '<input class="form-check-input" type="checkbox" id="' . $html_id . '" name="' . $name . '" value="' . htmlspecialchars((string)$value) . '" '
+        . ($selected ? ' checked="checked"' : '') . ' /><label class="form-check-label" for="' . $html_id . '">'
         . $label
         . '</label></div>';
 }
@@ -196,9 +140,13 @@ function form_checkbox($name, $label, $selected, $value = 'checked', $html_id = 
  */
 function form_radio($name, $label, $selected, $value)
 {
-    return '<div class="radio">'
-        . '<label><input type="radio" id="' . $name . '" name="' . $name . '" value="' . htmlspecialchars((string)$value) . '" '
-        . ($selected ? ' checked="checked"' : '') . ' /> '
+    $value = htmlspecialchars((string)$value);
+    $id = preg_replace('/\s/', '-', $name . '_' . $value);
+
+    return '<div class="form-check">'
+        . '<input class="form-check-input" type="radio" id="' . $id . '" name="' . $name . '" value="' . $value . '" '
+        . ($selected ? ' checked="checked"' : '') . ' />'
+        . '<label class="form-check-label" for="' . $id . '">'
         . $label
         . '</label></div>';
 }
@@ -341,18 +289,20 @@ function form_file($name, $label)
  *
  * @param string $name
  * @param string $label
+ * @param string $autocomplete
  * @param bool   $disabled
  * @return string
  */
-function form_password($name, $label, $disabled = false)
+function form_password($name, $label, $autocomplete, $disabled = false)
 {
     $disabled = $disabled ? ' disabled="disabled"' : '';
     return form_element(
         $label,
         sprintf(
-            '<input class="form-control" id="form_%1$s" type="password" name="%1$s" minlength="%2$s" value=""%3$s/>',
+            '<input class="form-control" id="form_%1$s" type="password" name="%1$s" minlength="%2$s" value="" autocomplete="%3$s"%4$s/>',
             $name,
             config('min_password_length'),
+            $autocomplete,
             $disabled
         ),
         'form_' . $name
@@ -478,8 +428,11 @@ function html_options($name, $options, $selected = '')
 {
     $html = '';
     foreach ($options as $value => $label) {
-        $html .= '<input type="radio"' . ($value == $selected ? ' checked="checked"' : '') . ' name="'
-            . $name . '" value="' . $value . '"> ' . $label;
+        $html .= '<div class="form-check form-check-inline">'
+            . '<input class="form-check-input" type="radio" id="' . $name . '_' . $value . '" name="' . $name . '"'
+            . ($value == $selected ? ' checked="checked"' : '') . ' value="' . $value . '" />'
+            . '<label class="form-check-label" for="' . $name . '_' . $value . '">' . $label . '</label>'
+            . '</div>';
     }
 
     return $html;

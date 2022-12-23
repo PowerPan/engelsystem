@@ -12,13 +12,12 @@ use Psr\Http\Message\ServerRequestInterface;
 
 trait HasDatabase
 {
-    /** @var Database */
-    protected $database;
+    protected Database $database;
 
     /**
      * Setup in memory database
      */
-    protected function initDatabase()
+    protected function initDatabase(): void
     {
         $dbManager = new CapsuleManager();
         $dbManager->addConnection(['driver' => 'sqlite', 'database' => ':memory:']);
@@ -58,6 +57,9 @@ trait HasDatabase
                     ['migration' => '2021_12_30_000000_remove_admin_news_html_privilege'],
                     ['migration' => '2022_06_02_000000_create_voucher_edit_permission'],
                     ['migration' => '2022_06_03_000000_shifts_add_transaction_id'],
+                    ['migration' => '2022_07_21_000000_fix_old_groups_table_id_and_name'],
+                    ['migration' => '2022_10_21_000000_add_hide_register_to_angeltypes'],
+                    ['migration' => '2022_11_06_000000_shifttype_remove_angeltype'],
                 ]
             );
 

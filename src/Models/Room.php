@@ -13,12 +13,14 @@ use Illuminate\Database\Query\Builder as QueryBuilder;
  * @property string      $name
  * @property string      $map_url
  * @property string      $description
+ * @property string      $dect
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  *
  * @method static QueryBuilder|Room[] whereId($value)
  * @method static QueryBuilder|Room[] whereName($value)
  * @method static QueryBuilder|Room[] whereMapUrl($value)
+ * @method static QueryBuilder|Room[] whereDect($value)
  * @method static QueryBuilder|Room[] whereDescription($value)
  * @method static QueryBuilder|Room[] whereCreatedAt($value)
  * @method static QueryBuilder|Room[] whereUpdatedAt($value)
@@ -28,11 +30,12 @@ class Room extends BaseModel
     use HasFactory;
 
     /** @var bool Enable timestamps */
-    public $timestamps = true;
+    public $timestamps = true; // phpcs:ignore
 
-    /** @var array */
-    protected $fillable = [
+    /** @var array<string> */
+    protected $fillable = [ // phpcs:ignore
         'name',
+        'dect',
         'map_url',
         'description',
     ];

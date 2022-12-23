@@ -1,6 +1,9 @@
 <?php
 
+use Engelsystem\Helpers\Carbon;
+use Engelsystem\Models\AngelType;
 use Engelsystem\Models\Room;
+use Engelsystem\Models\User\User;
 
 /**
  * @return string
@@ -22,16 +25,17 @@ function admin_rooms()
     foreach ($rooms_source as $room) {
         $rooms[] = [
             'name'      => Room_name_render($room),
+            'dect'      => icon_bool($room->dect),
             'map_url'   => icon_bool($room->map_url),
             'actions'   => table_buttons([
                 button(
                     page_link_to('admin_rooms', ['show' => 'edit', 'id' => $room->id]),
-                    __('edit'),
+                    icon('pencil') . __('edit'),
                     'btn-sm'
                 ),
                 button(
                     page_link_to('admin_rooms', ['show' => 'delete', 'id' => $room->id]),
-                    __('delete'),
+                    icon('trash') . __('delete'),
                     'btn-sm'
                 )
             ])
@@ -44,14 +48,15 @@ function admin_rooms()
         $name = '';
         $map_url = null;
         $description = null;
+        $dect = null;
         $room_id = 0;
 
-        $angeltypes_source = AngelTypes();
+        $angeltypes_source = AngelType::all();
         $angeltypes = [];
         $angeltypes_count = [];
         foreach ($angeltypes_source as $angeltype) {
-            $angeltypes[$angeltype['id']] = $angeltype['name'];
-            $angeltypes_count[$angeltype['id']] = 0;
+            $angeltypes[$angeltype->id] = $angeltype->name;
+            $angeltypes_count[$angeltype->id] = 0;
         }
 
         if (test_request_int('id')) {
@@ -64,6 +69,7 @@ function admin_rooms()
             $name = $room->name;
             $map_url = $room->map_url;
             $description = $room->description;
+            $dect = $room->dect;
 
             $needed_angeltypes = NeededAngelTypes_by_room($room_id);
             foreach ($needed_angeltypes as $needed_angeltype) {
@@ -75,8 +81,8 @@ function admin_rooms()
             if ($request->hasPostData('submit')) {
                 $valid = true;
 
-                if ($request->has('name') && strlen(strip_request_item('name')) > 0) {
-                    $result = Room_validate_name(strip_request_item('name'), $room_id);
+                if ($request->has('name') && strlen(strip_request_tags('name')) > 0) {
+                    $result = Room_validate_name(strip_request_tags('name'), $room_id);
                     if (!$result->isValid()) {
                         $valid = false;
                         $msg .= error(__('This name is already in use.'), true);
@@ -94,6 +100,9 @@ function admin_rooms()
 
                 if ($request->has('description')) {
                     $description = strip_request_item_nl('description');
+                }
+                if ($request->has('dect')) {
+                    $dect = strip_request_item_nl('dect');
                 }
 
                 foreach ($angeltypes as $angeltype_id => $angeltype) {
@@ -116,19 +125,19 @@ function admin_rooms()
 
                 if ($valid) {
                     if (empty($room_id)) {
-                        $room_id = Room_create($name, $map_url, $description);
+                        $room_id = Room_create($name, $map_url, $description, $dect);
                     } else {
-                        Room_update($room_id, $name, $map_url, $description);
+                        Room_update($room_id, $name, $map_url, $description, $dect);
                     }
 
                     NeededAngelTypes_delete_by_room($room_id);
                     $needed_angeltype_info = [];
                     foreach ($angeltypes_count as $angeltype_id => $angeltype_count) {
-                        $angeltype = AngelType($angeltype_id);
+                        $angeltype = AngelType::find($angeltype_id);
                         if (!empty($angeltype)) {
                             NeededAngelType_add(null, $angeltype_id, $room_id, $angeltype_count);
                             if ($angeltype_count > 0) {
-                                $needed_angeltype_info[] = $angeltype['name'] . ': ' . $angeltype_count;
+                                $needed_angeltype_info[] = $angeltype->name . ': ' . $angeltype_count;
                             }
                         }
                     }
@@ -142,9 +151,9 @@ function admin_rooms()
                 }
             }
             $angeltypes_count_form = [];
-            foreach ($angeltypes as $angeltype_id => $angeltype) {
+            foreach ($angeltypes as $angeltype_id => $angeltypeName) {
                 $angeltypes_count_form[] = div('col-lg-4 col-md-6 col-xs-6', [
-                    form_spinner('angeltype_count_' . $angeltype_id, $angeltype, $angeltypes_count[$angeltype_id])
+                    form_spinner('angeltype_count_' . $angeltype_id, $angeltypeName, $angeltypes_count[$angeltype_id])
                 ]);
             }
 
@@ -157,6 +166,7 @@ function admin_rooms()
                     div('row', [
                         div('col-md-6', [
                             form_text('name', __('Name'), $name, false, 35),
+                            form_text('dect', __('DECT'), $dect),
                             form_text('map_url', __('Map URL'), $map_url),
                             form_info('', __('The map url is used to display an iframe on the room page.')),
                             form_textarea('description', __('Description'), $description),
@@ -180,9 +190,19 @@ function admin_rooms()
                 $shifts = Shifts_by_room($room);
                 foreach ($shifts as $shift) {
                     $shift = Shift($shift['SID']);
-
-                    UserWorkLog_from_shift($shift);
-                    mail_shift_delete($shift);
+                    foreach ($shift['ShiftEntry'] as $entry) {
+                        $type = AngelType::find($entry['TID']);
+                        event('shift.entry.deleting', [
+                            'user'       => User::find($entry['user_id']),
+                            'start'      => Carbon::createFromTimestamp($shift['start']),
+                            'end'        => Carbon::createFromTimestamp($shift['end']),
+                            'name'       => $shift['name'],
+                            'title'      => $shift['title'],
+                            'type'       => $type->name,
+                            'room'       => $room,
+                            'freeloaded' => (bool)$entry['freeloaded'],
+                        ]);
+                    }
                 }
 
                 Room_delete($room);
@@ -210,6 +230,7 @@ function admin_rooms()
         msg(),
         table([
             'name'      => __('Name'),
+            'dect'      => __('DECT'),
             'map_url'   => __('Map'),
             'actions'   => ''
         ], $rooms)

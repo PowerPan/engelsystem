@@ -12,12 +12,12 @@ class ShiftsFilter
     /**
      * Shift is completely full.
      */
-    const FILLED_FILLED = 1;
+    public const FILLED_FILLED = 1;
 
     /**
      * Shift has some free slots.
      */
-    const FILLED_FREE = 0;
+    public const FILLED_FREE = 0;
 
     /**
      * Has the user "user shifts admin" privilege?
@@ -28,9 +28,6 @@ class ShiftsFilter
 
     /** @var int[] */
     private $filled;
-
-    /** @var int[] */
-    private $rooms;
 
     /** @var int[] */
     private $types;
@@ -46,12 +43,11 @@ class ShiftsFilter
      *
      * @param bool  $user_shifts_admin
      * @param int[] $rooms
-     * @param int[] $types
+     * @param int[] $angelTypes
      */
-    public function __construct($user_shifts_admin = false, $rooms = [], $types = [])
+    public function __construct($user_shifts_admin = false, private $rooms = [], $angelTypes = [])
     {
-        $this->rooms = $rooms;
-        $this->types = $types;
+        $this->types = $angelTypes;
 
         $this->filled = [
             ShiftsFilter::FILLED_FREE

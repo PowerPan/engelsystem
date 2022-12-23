@@ -4,10 +4,13 @@ namespace Engelsystem\Test\Unit\Models\User;
 
 use Carbon\Carbon;
 use DMS\PHPUnitExtensions\ArraySubset\ArraySubsetAsserts;
+use Engelsystem\Models\AngelType;
 use Engelsystem\Models\BaseModel;
+use Engelsystem\Models\Group;
 use Engelsystem\Models\News;
 use Engelsystem\Models\NewsComment;
 use Engelsystem\Models\OAuth;
+use Engelsystem\Models\Privilege;
 use Engelsystem\Models\Question;
 use Engelsystem\Models\User\Contact;
 use Engelsystem\Models\User\HasUserModel;
@@ -16,9 +19,11 @@ use Engelsystem\Models\User\PersonalData;
 use Engelsystem\Models\User\Settings;
 use Engelsystem\Models\User\State;
 use Engelsystem\Models\User\User;
+use Engelsystem\Models\UserAngelType;
 use Engelsystem\Models\Worklog;
 use Engelsystem\Test\Unit\Models\ModelTest;
 use Exception;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
 
 class UserTest extends ModelTest
@@ -26,17 +31,14 @@ class UserTest extends ModelTest
     use ArraySubsetAsserts;
 
     /** @var string[] */
-    protected $data = [
+    protected array $data = [
         'name'     => 'lorem',
         'password' => '',
         'email'    => 'foo@bar.batz',
         'api_key'  => '',
     ];
 
-    /**
-     * @return array
-     */
-    public function hasOneRelationsProvider()
+    public function hasOneRelationsProvider(): array
     {
         return [
             [
@@ -82,60 +84,6 @@ class UserTest extends ModelTest
     }
 
     /**
-     * @covers       \Engelsystem\Models\User\User::contact
-     * @covers       \Engelsystem\Models\User\User::license
-     * @covers       \Engelsystem\Models\User\User::personalData
-     * @covers       \Engelsystem\Models\User\User::settings
-     * @covers       \Engelsystem\Models\User\User::state
-     *
-     * @dataProvider hasOneRelationsProvider
-     *
-     * @param string $class
-     * @param string $name
-     * @param array  $data
-     * @throws Exception
-     */
-    public function testHasOneRelations($class, $name, $data)
-    {
-        $user = new User($this->data);
-        $user->save();
-
-        /** @var HasUserModel $contact */
-        $contact = new $class($data);
-        $contact->user()
-            ->associate($user)
-            ->save();
-
-        $this->assertArraySubset($data, (array)$user->{$name}->attributesToArray());
-    }
-
-    /**
-     * @covers       \Engelsystem\Models\User\User::news()
-     *
-     * @dataProvider hasManyRelationsProvider
-     *
-     * @param string $class     Class name of the related models
-     * @param string $name      Name of the accessor for the related models
-     * @param array  $modelData List of the related models
-     */
-    public function testHasManyRelations(string $class, string $name, array $modelData): void
-    {
-        $user = new User($this->data);
-        $user->save();
-
-        $relatedModelIds = [];
-
-        foreach ($modelData as $data) {
-            /** @var BaseModel $model */
-            $model = $this->app->make($class);
-            $stored = $model->create($data + ['user_id' => $user->id]);
-            $relatedModelIds[] = $stored->id;
-        }
-
-        $this->assertEquals($relatedModelIds, $user->{$name}->modelKeys());
-    }
-
-    /**
      * @return array[]
      */
     public function hasManyRelationsProvider(): array
@@ -158,6 +106,197 @@ class UserTest extends ModelTest
                 ]
             ]
         ];
+    }
+
+    /**
+     * @return array[]
+     */
+    public function belongsToManyRelationsProvider(): array
+    {
+        return [
+            'groups' => [
+                Group::class,
+                'groups',
+                [
+                    [
+                        'name' => 'Lorem',
+                    ],
+                    [
+                        'name' => 'Ipsum',
+                    ]
+                ]
+            ]
+        ];
+    }
+
+    /**
+     * @covers \Engelsystem\Models\User\User::contact
+     * @covers \Engelsystem\Models\User\User::license
+     * @covers \Engelsystem\Models\User\User::personalData
+     * @covers \Engelsystem\Models\User\User::settings
+     * @covers \Engelsystem\Models\User\User::state
+     *
+     * @dataProvider hasOneRelationsProvider
+     *
+     * @throws Exception
+     */
+    public function testHasOneRelations(string $class, string $name, array $data): void
+    {
+        $user = new User($this->data);
+        $user->save();
+
+        /** @var HasUserModel $instance */
+        $instance = new $class($data);
+        $instance->user()
+            ->associate($user)
+            ->save();
+
+        $this->assertArraySubset($data, (array)$user->{$name}->attributesToArray());
+    }
+
+    /**
+     * @covers       \Engelsystem\Models\User\User::news()
+     *
+     * @dataProvider hasManyRelationsProvider
+     *
+     * @param string $class Class name of the related models
+     * @param string $name Name of the accessor for the related models
+     * @param array  $modelData List of the related models
+     */
+    public function testHasManyRelations(string $class, string $name, array $modelData): void
+    {
+        $user = new User($this->data);
+        $user->save();
+
+        $relatedModelIds = [];
+
+        foreach ($modelData as $data) {
+            /** @var BaseModel $model */
+            $model = $this->app->make($class);
+            $stored = $model->create($data + ['user_id' => $user->id]);
+            $relatedModelIds[] = $stored->id;
+        }
+
+        $this->assertEquals($relatedModelIds, $user->{$name}->modelKeys());
+    }
+
+
+    /**
+     * @covers       \Engelsystem\Models\User\User::groups
+     *
+     * @dataProvider belongsToManyRelationsProvider
+     *
+     * @param string $class Class name of the related models
+     * @param string $name Name of the accessor for the related models
+     * @param array  $modelData List of the related models
+     */
+    public function testBelongsToManyRelations(string $class, string $name, array $modelData): void
+    {
+        $user = new User($this->data);
+        $user->save();
+
+        $relatedModelIds = [];
+
+        foreach ($modelData as $data) {
+            /** @var BaseModel $model */
+            $model = $this->app->make($class);
+            $stored = $model->create($data);
+            $stored->users()->attach($user);
+            $relatedModelIds[] = $stored->id;
+        }
+
+        $this->assertEquals($relatedModelIds, $user->{$name}->modelKeys());
+    }
+
+    /**
+     * @covers \Engelsystem\Models\User\User::userAngelTypes
+     */
+    public function testUserAngelTypes(): void
+    {
+        AngelType::factory(2)->create();
+        $angelType1 = AngelType::factory()->create();
+        AngelType::factory(1)->create();
+        $angelType2 = AngelType::factory()->create();
+
+        $user = new User($this->data);
+        $user->save();
+
+        $user->userAngelTypes()->attach($angelType1);
+        $user->userAngelTypes()->attach($angelType2);
+
+        /** @var UserAngelType $userAngelType */
+        $userAngelType = UserAngelType::find(1);
+        $this->assertEquals($user->id, $userAngelType->user->id);
+
+        $angeltypes = $user->userAngelTypes;
+        $this->assertCount(2, $angeltypes);
+    }
+
+    /**
+     * @covers \Engelsystem\Models\User\User::isAngelTypeSupporter
+     */
+    public function testIsAngelTypeSupporter(): void
+    {
+        /** @var AngelType $angelType1 */
+        $angelType1 = AngelType::factory()->create();
+        /** @var AngelType $angelType2 */
+        $angelType2 = AngelType::factory()->create();
+
+        $user = new User($this->data);
+        $user->save();
+
+        $user->userAngelTypes()->attach($angelType1, ['supporter' => true]);
+        $user->userAngelTypes()->attach($angelType2);
+
+        $this->assertTrue($user->isAngelTypeSupporter($angelType1));
+        $this->assertFalse($user->isAngelTypeSupporter($angelType2));
+    }
+
+    /**
+     * @covers \Engelsystem\Models\User\User::privileges
+     * @covers \Engelsystem\Models\User\User::getPrivilegesAttribute
+     */
+    public function testPrivileges(): void
+    {
+        $user = new User($this->data);
+        $user->save();
+
+        /** @var Group $group1 */
+        $group1 = Group::factory()->create();
+        /** @var Group $group2 */
+        $group2 = Group::factory()->create();
+        /** @var Group $group3 */
+        $group3 = Group::factory()->create();
+        /** @var Privilege $privilege1 */
+        $privilege1 = Privilege::factory()->create();
+        /** @var Privilege $privilege2 */
+        $privilege2 = Privilege::factory()->create();
+        /** @var Privilege $privilege3 */
+        $privilege3 = Privilege::factory()->create();
+        /** @var Privilege $privilege4 */
+        $privilege4 = Privilege::factory()->create();
+
+        $user->groups()->attach($group1);
+        $user->groups()->attach($group2);
+
+        $group1->privileges()->attach($privilege1);
+        $group1->privileges()->attach($privilege2);
+
+        $group2->privileges()->attach($privilege2);
+        $group2->privileges()->attach($privilege3);
+
+        $group3->privileges()->attach($privilege3);
+        $group3->privileges()->attach($privilege4);
+
+        /** @var User $createdUser */
+        $createdUser = User::first();
+        $this->assertInstanceOf(Builder::class, $createdUser->privileges());
+
+        $privileges = $createdUser->privileges->pluck('name');
+        $this->assertCount(3, $privileges);
+        $this->assertContains($privilege1->name, $privileges);
+        $this->assertContains($privilege2->name, $privileges);
+        $this->assertContains($privilege3->name, $privileges);
     }
 
     /**
