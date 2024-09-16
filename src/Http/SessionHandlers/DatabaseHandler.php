@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Http\SessionHandlers;
 
 use Engelsystem\Database\Database;
@@ -7,21 +9,14 @@ use Illuminate\Database\Query\Builder as QueryBuilder;
 
 class DatabaseHandler extends AbstractHandler
 {
-    /** @var Database */
-    protected $database;
-
-    /**
-     * @param Database $database
-     */
-    public function __construct(Database $database)
+    public function __construct(protected Database $database)
     {
-        $this->database = $database;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function read($id): string
+    public function read(string $id): string
     {
         $session = $this->getQuery()
             ->where('id', '=', $id)
@@ -33,7 +28,7 @@ class DatabaseHandler extends AbstractHandler
     /**
      * {@inheritdoc}
      */
-    public function write($id, $data): bool
+    public function write(string $id, string $data): bool
     {
         $values = [
             'payload'       => $data,
@@ -62,7 +57,7 @@ class DatabaseHandler extends AbstractHandler
     /**
      * {@inheritdoc}
      */
-    public function destroy($id): bool
+    public function destroy(string $id): bool
     {
         $this->getQuery()
             ->where('id', '=', $id)
@@ -74,20 +69,15 @@ class DatabaseHandler extends AbstractHandler
     /**
      * {@inheritdoc}
      */
-    public function gc($maxLifetime)
+    public function gc(int $max_lifetime): int|false
     {
-        $timestamp = $this->getCurrentTimestamp(-$maxLifetime);
+        $timestamp = $this->getCurrentTimestamp(-$max_lifetime);
 
-        $this->getQuery()
+        return $this->getQuery()
             ->where('last_activity', '<', $timestamp)
             ->delete();
-
-        return true;
     }
 
-    /**
-     * @return QueryBuilder
-     */
     protected function getQuery(): QueryBuilder
     {
         return $this->database
@@ -97,9 +87,6 @@ class DatabaseHandler extends AbstractHandler
 
     /**
      * Format the SQL timestamp
-     *
-     * @param int $diff
-     * @return string
      */
     protected function getCurrentTimestamp(int $diff = 0): string
     {

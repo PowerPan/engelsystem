@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Http;
 
 use DMS\PHPUnitExtensions\ArraySubset\ArraySubsetAsserts;
@@ -14,7 +16,7 @@ class MessageTraitRequestTest extends TestCase
     /**
      * @covers \Engelsystem\Http\MessageTrait::withProtocolVersion
      */
-    public function testWithProtocolVersion()
+    public function testWithProtocolVersion(): void
     {
         $message = new MessageTraitRequestImplementation();
         $newMessage = $message->withProtocolVersion('0.1');
@@ -25,7 +27,7 @@ class MessageTraitRequestTest extends TestCase
     /**
      * @covers \Engelsystem\Http\MessageTrait::getHeaders
      */
-    public function testGetHeaders()
+    public function testGetHeaders(): void
     {
         $message = new MessageTraitRequestImplementation();
         $newMessage = $message->withHeader('lorem', 'ipsum');
@@ -37,7 +39,7 @@ class MessageTraitRequestTest extends TestCase
     /**
      * @covers \Engelsystem\Http\MessageTrait::withBody
      */
-    public function testWithBody()
+    public function testWithBody(): void
     {
         $stream = Stream::create('Test content');
         $message = new MessageTraitRequestImplementation();

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Http;
 
 use Engelsystem\Application;
@@ -18,7 +20,7 @@ class Psr7ServiceProviderTest extends ServiceProviderTest
     /**
      * @covers \Engelsystem\Http\Psr7ServiceProvider::register()
      */
-    public function testRegister()
+    public function testRegister(): void
     {
         $app = new Application();
 

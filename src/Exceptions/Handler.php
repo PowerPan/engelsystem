@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Exceptions;
 
+use Engelsystem\Environment;
 use Engelsystem\Exceptions\Handlers\HandlerInterface;
 use Engelsystem\Exceptions\Handlers\Legacy;
 use Engelsystem\Http\Request;
@@ -10,64 +13,48 @@ use Throwable;
 
 class Handler
 {
-    /** @var string */
-    protected $environment;
-
     /** @var HandlerInterface[] */
-    protected $handler = [];
+    protected array $handler = [];
 
-    /** @var Request */
-    protected $request;
-
-    /** @var string */
-    public const ENV_PRODUCTION = 'prod';
-
-    /** @var string */
-    public const ENV_DEVELOPMENT = 'dev';
+    protected ?Request $request = null;
 
     /**
      * Handler constructor.
      *
-     * @param string $environment prod|dev
+     * @param Environment $environment prod|dev
      */
-    public function __construct($environment = self::ENV_PRODUCTION)
+    public function __construct(protected Environment $environment = Environment::PRODUCTION)
     {
-        $this->environment = $environment;
     }
 
     /**
      * Activate the error handler
+     * @codeCoverageIgnore
      */
-    public function register()
+    public function register(): void
     {
+        if (defined('PHPUNIT_COMPOSER_INSTALL')) {
+            return;
+        }
+
         set_error_handler([$this, 'errorHandler']);
         set_exception_handler([$this, 'exceptionHandler']);
     }
 
-    /**
-     * @param int    $number
-     * @param string $message
-     * @param string $file
-     * @param int    $line
-     */
-    public function errorHandler($number, $message, $file, $line)
+    public function errorHandler(int $number, string $message, string $file, int $line): void
     {
         $exception = new ErrorException($message, 0, $number, $file, $line);
         $this->exceptionHandler($exception);
     }
 
-    /**
-     * @param Throwable $e
-     * @param bool      $return
-     * @return string
-     */
-    public function exceptionHandler($e, $return = false)
+    public function exceptionHandler(Throwable $e, bool $return = false): string
     {
         if (!$this->request instanceof Request) {
             $this->request = new Request();
         }
 
-        $handler = isset($this->handler[$this->environment]) ? $this->handler[$this->environment] : new Legacy();
+        $handler = isset($this->handler[$this->environment->value])
+            ? $this->handler[$this->environment->value] : new Legacy();
         $handler->report($e);
         ob_start();
         $handler->render($this->request, $e);
@@ -90,64 +77,46 @@ class Handler
      * Exit the application
      *
      * @codeCoverageIgnore
-     * @param string $message
      */
-    protected function terminateApplicationImmediately($message = '')
+    protected function terminateApplicationImmediately(string $message = ''): void
     {
         echo $message;
         die(1);
     }
 
-    /**
-     * @return string
-     */
-    public function getEnvironment()
+    public function getEnvironment(): Environment
     {
         return $this->environment;
     }
 
-    /**
-     * @param string $environment
-     */
-    public function setEnvironment($environment)
+    public function setEnvironment(Environment $environment): void
     {
         $this->environment = $environment;
     }
 
     /**
-     * @param string $environment
      * @return HandlerInterface|HandlerInterface[]
      */
-    public function getHandler($environment = null)
+    public function getHandler(Environment $environment = null): HandlerInterface|array
     {
         if (!is_null($environment)) {
-            return $this->handler[$environment];
+            return $this->handler[$environment->value];
         }
 
         return $this->handler;
     }
 
-    /**
-     * @param string           $environment
-     * @param HandlerInterface $handler
-     */
-    public function setHandler($environment, HandlerInterface $handler)
+    public function setHandler(Environment $environment, HandlerInterface $handler): void
     {
-        $this->handler[$environment] = $handler;
+        $this->handler[$environment->value] = $handler;
     }
 
-    /**
-     * @return Request
-     */
-    public function getRequest()
+    public function getRequest(): Request
     {
         return $this->request;
     }
 
-    /**
-     * @param Request $request
-     */
-    public function setRequest(Request $request)
+    public function setRequest(Request $request): void
     {
         $this->request = $request;
     }

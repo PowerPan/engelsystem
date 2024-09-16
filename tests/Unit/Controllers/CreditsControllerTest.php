@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Controllers;
 
 use Engelsystem\Config\Config;
@@ -15,7 +17,7 @@ class CreditsControllerTest extends TestCase
      * @covers \Engelsystem\Controllers\CreditsController::__construct
      * @covers \Engelsystem\Controllers\CreditsController::index
      */
-    public function testIndex()
+    public function testIndex(): void
     {
         /** @var Response|MockObject $response */
         $response = $this->createMock(Response::class);

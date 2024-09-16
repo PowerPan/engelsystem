@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Http;
 
 use DMS\PHPUnitExtensions\ArraySubset\ArraySubsetAsserts;
@@ -17,7 +19,7 @@ class MessageTraitResponseTest extends TestCase
     /**
      * @covers \Engelsystem\Http\MessageTrait
      */
-    public function testCreate()
+    public function testCreate(): void
     {
         $message = new MessageTraitResponseImplementation();
         $this->assertInstanceOf(MessageInterface::class, $message);
@@ -28,7 +30,7 @@ class MessageTraitResponseTest extends TestCase
      * @covers \Engelsystem\Http\MessageTrait::getProtocolVersion
      * @covers \Engelsystem\Http\MessageTrait::withProtocolVersion
      */
-    public function testGetProtocolVersion()
+    public function testGetProtocolVersion(): void
     {
         $message = new MessageTraitResponseImplementation();
         $newMessage = $message->withProtocolVersion('0.1');
@@ -39,7 +41,7 @@ class MessageTraitResponseTest extends TestCase
     /**
      * @covers \Engelsystem\Http\MessageTrait::getHeaders
      */
-    public function testGetHeaders()
+    public function testGetHeaders(): void
     {
         $message = new MessageTraitResponseImplementation();
         $newMessage = $message->withHeader('Foo', 'bar');
@@ -54,7 +56,7 @@ class MessageTraitResponseTest extends TestCase
     /**
      * @covers \Engelsystem\Http\MessageTrait::hasHeader
      */
-    public function testHasHeader()
+    public function testHasHeader(): void
     {
         $message = new MessageTraitResponseImplementation();
         $this->assertFalse($message->hasHeader('test'));
@@ -67,7 +69,7 @@ class MessageTraitResponseTest extends TestCase
     /**
      * @covers \Engelsystem\Http\MessageTrait::getHeader
      */
-    public function testGetHeader()
+    public function testGetHeader(): void
     {
         $message = new MessageTraitResponseImplementation();
         $newMessage = $message->withHeader('foo', 'bar');
@@ -84,7 +86,7 @@ class MessageTraitResponseTest extends TestCase
     /**
      * @covers \Engelsystem\Http\MessageTrait::getHeaderLine
      */
-    public function testGetHeaderLine()
+    public function testGetHeaderLine(): void
     {
         $message = new MessageTraitResponseImplementation();
         $newMessage = $message->withHeader('foo', ['bar', 'bla']);
@@ -96,7 +98,7 @@ class MessageTraitResponseTest extends TestCase
     /**
      * @covers \Engelsystem\Http\MessageTrait::withHeader
      */
-    public function testWithHeader()
+    public function testWithHeader(): void
     {
         $message = new MessageTraitResponseImplementation();
         $newMessage = $message->withHeader('foo', 'bar');
@@ -111,7 +113,7 @@ class MessageTraitResponseTest extends TestCase
     /**
      * @covers \Engelsystem\Http\MessageTrait::withAddedHeader
      */
-    public function testWithAddedHeader()
+    public function testWithAddedHeader(): void
     {
         $message = new MessageTraitResponseImplementation();
         $newMessage = $message->withHeader('foo', 'bar');
@@ -126,7 +128,7 @@ class MessageTraitResponseTest extends TestCase
     /**
      * @covers \Engelsystem\Http\MessageTrait::withoutHeader
      */
-    public function testWithoutHeader()
+    public function testWithoutHeader(): void
     {
         $message = (new MessageTraitResponseImplementation())->withHeader('foo', 'bar');
         $this->assertTrue($message->hasHeader('foo'));
@@ -139,7 +141,7 @@ class MessageTraitResponseTest extends TestCase
     /**
      * @covers \Engelsystem\Http\MessageTrait::getBody
      */
-    public function testGetBody()
+    public function testGetBody(): void
     {
         $message = (new MessageTraitResponseImplementation())->setContent('Foo bar!');
         $body = $message->getBody();
@@ -151,7 +153,7 @@ class MessageTraitResponseTest extends TestCase
     /**
      * @covers \Engelsystem\Http\MessageTrait::withBody
      */
-    public function testWithBody()
+    public function testWithBody(): void
     {
         $stream = Stream::create('Test content');
         $message = new MessageTraitResponseImplementation();

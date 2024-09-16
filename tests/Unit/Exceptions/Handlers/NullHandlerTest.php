@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Exceptions\Handlers;
 
 use Engelsystem\Exceptions\Handlers\NullHandler;
@@ -12,7 +14,7 @@ class NullHandlerTest extends TestCase
     /**
      * @covers \Engelsystem\Exceptions\Handlers\NullHandler::render
      */
-    public function testRender()
+    public function testRender(): void
     {
         $handler = new NullHandler();
         $request = new Request();

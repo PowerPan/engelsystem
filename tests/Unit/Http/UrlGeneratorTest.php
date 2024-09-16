@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Http;
 
 use Engelsystem\Config\Config;
@@ -9,9 +11,6 @@ use Engelsystem\Test\Unit\TestCase;
 
 class UrlGeneratorTest extends TestCase
 {
-    /**
-     * @return array
-     */
     public function provideLinksTo(): array
     {
         return [
@@ -26,14 +25,15 @@ class UrlGeneratorTest extends TestCase
      * @covers       \Engelsystem\Http\UrlGenerator::to
      * @covers       \Engelsystem\Http\UrlGenerator::generateUrl
      *
-     * @param string   $path
-     * @param string   $willReturn
-     * @param string   $urlToPath
      * @param string[] $arguments
-     * @param string   $expectedUrl
      */
-    public function testTo($urlToPath, $path, $willReturn, $arguments, $expectedUrl)
-    {
+    public function testTo(
+        string $urlToPath,
+        string $path,
+        string $willReturn,
+        array $arguments,
+        string $expectedUrl
+    ): void {
         $request = $this->getMockBuilder(Request::class)
             ->getMock();
         $request->expects($this->once())
@@ -52,7 +52,7 @@ class UrlGeneratorTest extends TestCase
     /**
      * @covers \Engelsystem\Http\UrlGenerator::to
      */
-    public function testToWithValidUrl()
+    public function testToWithValidUrl(): void
     {
         $url = new UrlGenerator();
         $this->app->instance('config', new Config());
@@ -67,7 +67,7 @@ class UrlGeneratorTest extends TestCase
      * @covers \Engelsystem\Http\UrlGenerator::to
      * @covers \Engelsystem\Http\UrlGenerator::generateUrl
      */
-    public function testToWithApplicationURL()
+    public function testToWithApplicationURL(): void
     {
         $this->app->instance('config', new Config(['url' => 'https://foo.bar/base/']));
 
@@ -85,7 +85,7 @@ class UrlGeneratorTest extends TestCase
     /**
      * @covers \Engelsystem\Http\UrlGenerator::isValidUrl
      */
-    public function testIsValidUrl()
+    public function testIsValidUrl(): void
     {
         $url = new UrlGenerator();
 

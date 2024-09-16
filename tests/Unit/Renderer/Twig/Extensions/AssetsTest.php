@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Renderer\Twig\Extensions;
 
 use Engelsystem\Helpers\Assets as AssetsProvider;
@@ -13,7 +15,7 @@ class AssetsTest extends ExtensionTest
      * @covers \Engelsystem\Renderer\Twig\Extensions\Assets::__construct
      * @covers \Engelsystem\Renderer\Twig\Extensions\Assets::getFunctions
      */
-    public function testGetFunctions()
+    public function testGetFunctions(): void
     {
         /** @var UrlGenerator&MockObject $urlGenerator */
         $urlGenerator = $this->createMock(UrlGenerator::class);
@@ -29,7 +31,7 @@ class AssetsTest extends ExtensionTest
     /**
      * @covers \Engelsystem\Renderer\Twig\Extensions\Assets::getAsset
      */
-    public function testGetAsset()
+    public function testGetAsset(): void
     {
         /** @var UrlGenerator&MockObject $urlGenerator */
         $urlGenerator = $this->createMock(UrlGenerator::class);

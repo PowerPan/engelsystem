@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Http;
 
 use Engelsystem\Application;
@@ -11,7 +13,7 @@ class RedirectServiceProviderTest extends ServiceProviderTest
     /**
      * @covers \Engelsystem\Http\RedirectServiceProvider::register
      */
-    public function testRegister()
+    public function testRegister(): void
     {
         $app = new Application();
 

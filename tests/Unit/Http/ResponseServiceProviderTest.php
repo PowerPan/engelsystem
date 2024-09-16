@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Http;
 
 use Engelsystem\Http\Response;
@@ -13,7 +15,7 @@ class ResponseServiceProviderTest extends ServiceProviderTest
     /**
      * @covers \Engelsystem\Http\ResponseServiceProvider::register()
      */
-    public function testRegister()
+    public function testRegister(): void
     {
         /** @var Response|MockObject $response */
         $response = $this->getMockBuilder(Response::class)

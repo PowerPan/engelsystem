@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Helpers;
 
 use Engelsystem\Application;
@@ -12,9 +14,10 @@ class VersionServiceProviderTest extends ServiceProviderTest
     /**
      * @covers \Engelsystem\Helpers\VersionServiceProvider::register
      */
-    public function testRegister()
+    public function testRegister(): void
     {
         $app = new Application();
+        $app->instance('path', '/tmp');
         $app->instance('path.storage.app', '/tmp');
 
         $serviceProvider = new VersionServiceProvider($app);

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Middleware;
 
 use Engelsystem\Application;
@@ -8,7 +10,6 @@ use Engelsystem\Http\Exceptions\HttpForbidden;
 use Engelsystem\Middleware\CallableHandler;
 use Engelsystem\Middleware\RequestHandler;
 use Engelsystem\Test\Unit\Middleware\Stub\ControllerImplementation;
-use InvalidArgumentException;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
@@ -16,13 +17,14 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use ReflectionClass as Reflection;
+use TypeError;
 
 class RequestHandlerTest extends TestCase
 {
     /**
      * @covers \Engelsystem\Middleware\RequestHandler::__construct
      */
-    public function testInit()
+    public function testInit(): void
     {
         /** @var Application|MockObject $container */
         $container = $this->createMock(Application::class);
@@ -39,7 +41,7 @@ class RequestHandlerTest extends TestCase
     /**
      * @covers \Engelsystem\Middleware\RequestHandler::process
      */
-    public function testProcess()
+    public function testProcess(): void
     {
         /** @var Application|MockObject $container */
         /** @var ServerRequestInterface|MockObject $request */
@@ -84,14 +86,14 @@ class RequestHandlerTest extends TestCase
         $middleware->process($request, $handler);
         $this->assertEquals($return, $response);
 
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(TypeError::class);
         $middleware->process($request, $handler);
     }
 
     /**
      * @covers \Engelsystem\Middleware\RequestHandler::resolveRequestHandler
      */
-    public function testResolveRequestHandler()
+    public function testResolveRequestHandler(): void
     {
         /** @var Application|MockObject $container */
         /** @var ServerRequestInterface|MockObject $request */
@@ -105,7 +107,7 @@ class RequestHandlerTest extends TestCase
         $request->expects($this->exactly(1))
             ->method('getAttribute')
             ->with('route-request-handler')
-            ->willReturn('FooBarTestController@showStuff');
+            ->willReturn('FooBarTestController@process');
 
         /** @var RequestHandler|MockObject $middleware */
         $middleware = $this->getMockBuilder(RequestHandler::class)
@@ -114,7 +116,7 @@ class RequestHandlerTest extends TestCase
             ->getMock();
         $middleware->expects($this->once())
             ->method('resolveMiddleware')
-            ->with([$middlewareInterface, 'showStuff'])
+            ->with([$middlewareInterface, 'process'])
             ->willReturn($middlewareInterface);
 
         $middlewareInterface->expects($this->once())
@@ -130,6 +132,9 @@ class RequestHandlerTest extends TestCase
             ->method('make')
             ->with($className)
             ->willReturn($middlewareInterface);
+        $container->expects($this->exactly(2))
+            ->method('instance')
+            ->withConsecutive([ServerRequestInterface::class, $request], ['request', $request]);
 
         $return = $middleware->process($request, $handler);
         $this->assertEquals($return, $response);
@@ -139,7 +144,7 @@ class RequestHandlerTest extends TestCase
      * @covers \Engelsystem\Middleware\RequestHandler::checkPermissions
      * @covers \Engelsystem\Middleware\RequestHandler::process
      */
-    public function testCheckPermissions()
+    public function testCheckPermissions(): void
     {
         /** @var Application|MockObject $container */
         /** @var ServerRequestInterface|MockObject $request */
@@ -208,9 +213,6 @@ class RequestHandlerTest extends TestCase
         $middleware->process($request, $handler);
     }
 
-    /**
-     * @return array
-     */
     protected function getMocks(): array
     {
         /** @var Application|MockObject $container */

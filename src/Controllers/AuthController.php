@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Controllers;
 
 use Carbon\Carbon;
@@ -15,72 +17,33 @@ class AuthController extends BaseController
 {
     use HasUserNotifications;
 
-    /** @var Response */
-    protected $response;
-
-    /** @var SessionInterface */
-    protected $session;
-
-    /** @var Redirector */
-    protected $redirect;
-
-    /** @var Config */
-    protected $config;
-
-    /** @var Authenticator */
-    protected $auth;
-
-    /** @var array */
-    protected $permissions = [
+    /** @var array<string, string> */
+    protected array $permissions = [
         'login'     => 'login',
         'postLogin' => 'login',
     ];
 
-    /**
-     * @param Response         $response
-     * @param SessionInterface $session
-     * @param Redirector       $redirect
-     * @param Config           $config
-     * @param Authenticator    $auth
-     */
     public function __construct(
-        Response $response,
-        SessionInterface $session,
-        Redirector $redirect,
-        Config $config,
-        Authenticator $auth
+        protected Response $response,
+        protected SessionInterface $session,
+        protected Redirector $redirect,
+        protected Config $config,
+        protected Authenticator $auth
     ) {
-        $this->response = $response;
-        $this->session = $session;
-        $this->redirect = $redirect;
-        $this->config = $config;
-        $this->auth = $auth;
     }
 
-    /**
-     * @return Response
-     */
     public function login(): Response
     {
         return $this->showLogin();
     }
 
-    /**
-     * @return Response
-     */
     protected function showLogin(): Response
     {
-        return $this->response->withView(
-            'pages/login',
-            $this->getNotifications()
-        );
+        return $this->response->withView('pages/login');
     }
 
     /**
      * Posted login form
-     *
-     * @param Request $request
-     * @return Response
      */
     public function postLogin(Request $request): Response
     {
@@ -92,7 +55,7 @@ class AuthController extends BaseController
         $user = $this->auth->authenticate($data['login'], $data['password']);
 
         if (!$user instanceof User) {
-            $this->addNotification('auth.not-found', 'errors');
+            $this->addNotification('auth.not-found', NotificationType::ERROR);
 
             return $this->showLogin();
         }
@@ -100,11 +63,6 @@ class AuthController extends BaseController
         return $this->loginUser($user);
     }
 
-    /**
-     * @param User $user
-     *
-     * @return Response
-     */
     public function loginUser(User $user): Response
     {
         $previousPage = $this->session->get('previous_page');
@@ -119,9 +77,6 @@ class AuthController extends BaseController
         return $this->redirect->to($previousPage ?: $this->config->get('home_site'));
     }
 
-    /**
-     * @return Response
-     */
     public function logout(): Response
     {
         $this->session->invalidate();

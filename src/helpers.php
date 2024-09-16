@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Engelsystem\Application;
 use Engelsystem\Config\Config;
 use Engelsystem\Events\EventDispatcher;
@@ -14,11 +16,10 @@ use Symfony\Component\HttpFoundation\Session\SessionInterface;
 
 /**
  * Get the global app instance
- *
- * @param string $id
  * @return mixed|Application
+ * @phpcsSuppress SlevomatCodingStandard.TypeHints.ReturnTypeHint.UselessAnnotation
  */
-function app($id = null)
+function app(string $id = null): mixed
 {
     if (is_null($id)) {
         return Application::getInstance();
@@ -27,29 +28,17 @@ function app($id = null)
     return Application::getInstance()->get($id);
 }
 
-/**
- * @return Authenticator
- */
 function auth(): Authenticator
 {
     return app('authenticator');
 }
 
-/**
- * @param string $path
- * @return string
- */
-function base_path($path = ''): string
+function base_path(string $path = ''): string
 {
     return app('path') . (empty($path) ? '' : DIRECTORY_SEPARATOR . $path);
 }
 
-/**
- * @param int   $status
- * @param array $headers
- * @return Response
- */
-function back($status = 302, $headers = []): Response
+function back(int $status = 302, array $headers = []): Response
 {
     /** @var Redirector $redirect */
     $redirect = app('redirect');
@@ -59,12 +48,10 @@ function back($status = 302, $headers = []): Response
 
 /**
  * Get or set config values
- *
- * @param string|array $key
- * @param mixed        $default
  * @return mixed|Config
+ * @phpcsSuppress SlevomatCodingStandard.TypeHints.ReturnTypeHint.UselessAnnotation
  */
-function config($key = null, $default = null)
+function config(string|array $key = null, mixed $default = null): mixed
 {
     /** @var Config $config */
     $config = app('config');
@@ -81,22 +68,12 @@ function config($key = null, $default = null)
     return $config->get($key, $default);
 }
 
-/**
- * @param string $path
- * @return string
- */
-function config_path($path = ''): string
+function config_path(string $path = ''): string
 {
     return app('path.config') . (empty($path) ? '' : DIRECTORY_SEPARATOR . $path);
 }
 
-/**
- * @param string|object|null $event
- * @param array              $payload
- *
- * @return EventDispatcher
- */
-function event($event = null, $payload = [])
+function event(string|object|null $event = null, array $payload = []): array|EventDispatcher
 {
     /** @var EventDispatcher $dispatcher */
     $dispatcher = app('events.dispatcher');
@@ -108,13 +85,7 @@ function event($event = null, $payload = [])
     return $dispatcher;
 }
 
-/**
- * @param string $path
- * @param int    $status
- * @param array  $headers
- * @return Response
- */
-function redirect(string $path, $status = 302, $headers = []): Response
+function redirect(string $path, int $status = 302, array $headers = []): Response
 {
     /** @var Redirector $redirect */
     $redirect = app('redirect');
@@ -123,11 +94,10 @@ function redirect(string $path, $status = 302, $headers = []): Response
 }
 
 /**
- * @param string $key
- * @param mixed  $default
- * @return Request|mixed
+ * @return mixed|Request
+ * @phpcsSuppress SlevomatCodingStandard.TypeHints.ReturnTypeHint.UselessAnnotation
  */
-function request($key = null, $default = null)
+function request(string $key = null, mixed $default = null): mixed
 {
     /** @var Request $request */
     $request = app('request');
@@ -139,13 +109,7 @@ function request($key = null, $default = null)
     return $request->input($key, $default);
 }
 
-/**
- * @param string $content
- * @param int    $status
- * @param array  $headers
- * @return Response
- */
-function response($content = '', $status = 200, $headers = []): Response
+function response(mixed $content = '', int $status = 200, array $headers = []): Response
 {
     /** @var Response $response */
     $response = app('psr7.response');
@@ -161,11 +125,10 @@ function response($content = '', $status = 200, $headers = []): Response
 }
 
 /**
- * @param string $key
- * @param mixed  $default
- * @return SessionInterface|mixed
+ * @return mixed|SessionInterface
+ * @phpcsSuppress SlevomatCodingStandard.TypeHints.ReturnTypeHint.UselessAnnotation
  */
-function session($key = null, $default = null)
+function session(string $key = null, mixed $default = null): mixed
 {
     /** @var SessionInterface $session */
     $session = app('session');
@@ -179,12 +142,8 @@ function session($key = null, $default = null)
 
 /**
  * Translate the given message
- *
- * @param string $key
- * @param array  $replace
- * @return string|Translator
  */
-function trans($key = null, $replace = [])
+function trans(string $key = null, array $replace = []): string|Translator
 {
     /** @var Translator $translator */
     $translator = app('translator');
@@ -198,12 +157,8 @@ function trans($key = null, $replace = [])
 
 /**
  * Translate the given message
- *
- * @param string $key
- * @param array  $replace
- * @return string
  */
-function __($key, $replace = []): string
+function __(string $key, array $replace = []): string
 {
     /** @var Translator $translator */
     $translator = app('translator');
@@ -213,14 +168,8 @@ function __($key, $replace = []): string
 
 /**
  * Translate the given message
- *
- * @param string $key
- * @param string $keyPlural
- * @param int    $number
- * @param array  $replace
- * @return string
  */
-function _e($key, $keyPlural, $number, $replace = []): string
+function _e(string $key, string $keyPlural, int $number, array $replace = []): string
 {
     /** @var Translator $translator */
     $translator = app('translator');
@@ -228,12 +177,7 @@ function _e($key, $keyPlural, $number, $replace = []): string
     return $translator->translatePlural($key, $keyPlural, $number, $replace);
 }
 
-/**
- * @param string $path
- * @param array  $parameters
- * @return UrlGeneratorInterface|string
- */
-function url($path = null, $parameters = [])
+function url(string $path = null, array $parameters = []): UrlGeneratorInterface|string
 {
     /** @var UrlGeneratorInterface $urlGenerator */
     $urlGenerator = app('http.urlGenerator');
@@ -245,12 +189,7 @@ function url($path = null, $parameters = [])
     return $urlGenerator->to($path, $parameters);
 }
 
-/**
- * @param string  $template
- * @param mixed[] $data
- * @return Renderer|string
- */
-function view($template = null, $data = [])
+function view(string $template = null, array $data = []): Renderer|string
 {
     /** @var Renderer $renderer */
     $renderer = app('renderer');

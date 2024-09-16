@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Helpers\Schedule;
 
 use Engelsystem\Helpers\Schedule\Day;
@@ -19,7 +21,7 @@ class XmlParserTest extends TestCase
      * @covers \Engelsystem\Helpers\Schedule\XmlParser::getListFromSequence
      * @covers \Engelsystem\Helpers\Schedule\XmlParser::getSchedule
      */
-    public function testLoad()
+    public function testLoad(): void
     {
         libxml_use_internal_errors(true);
 

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Http\SessionHandlers;
 
 use Engelsystem\Test\Unit\Http\SessionHandlers\Stub\ArrayHandler;
@@ -10,7 +12,7 @@ class AbstractHandlerTest extends TestCase
     /**
      * @covers \Engelsystem\Http\SessionHandlers\AbstractHandler::open
      */
-    public function testOpen()
+    public function testOpen(): void
     {
         $handler = new ArrayHandler();
         $return = $handler->open('/foo/bar', '1337asd098hkl7654');
@@ -23,7 +25,7 @@ class AbstractHandlerTest extends TestCase
     /**
      * @covers \Engelsystem\Http\SessionHandlers\AbstractHandler::close
      */
-    public function testClose()
+    public function testClose(): void
     {
         $handler = new ArrayHandler();
         $return = $handler->close();
@@ -34,11 +36,11 @@ class AbstractHandlerTest extends TestCase
     /**
      * @covers \Engelsystem\Http\SessionHandlers\AbstractHandler::gc
      */
-    public function testGc()
+    public function testGc(): void
     {
         $handler = new ArrayHandler();
         $return = $handler->gc(60 * 60 * 24);
 
-        $this->assertTrue($return);
+        $this->assertEquals(0, $return);
     }
 }

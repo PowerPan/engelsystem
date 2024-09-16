@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Migrations;
 
 use Engelsystem\Database\Migration\Migration;
@@ -9,7 +11,7 @@ class AddShirtEditPermissions extends Migration
     /**
      * Run the migration
      */
-    public function up()
+    public function up(): void
     {
         if (!$this->schema->hasTable('GroupPrivileges')) {
             return;
@@ -40,7 +42,7 @@ class AddShirtEditPermissions extends Migration
     /**
      * Reverse the migration
      */
-    public function down()
+    public function down(): void
     {
         if (!$this->schema->hasTable('GroupPrivileges')) {
             return;

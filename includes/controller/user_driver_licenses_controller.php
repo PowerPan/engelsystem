@@ -17,9 +17,9 @@ function user_driver_license_required_hint()
         return null;
     }
 
-    $angeltypes = User_angeltypes($user->id);
+    $angeltypes = $user->userAngelTypes;
     foreach ($angeltypes as $angeltype) {
-        if ($angeltype['requires_driver_license']) {
+        if ($angeltype->requires_driver_license) {
             return sprintf(
                 __('You joined an angeltype which requires a driving license. Please edit your driving license information here: %s.'),
                 '<a href="' . user_driver_license_edit_link() . '" class="text-info">' . __('driving license information') . '</a>'
@@ -45,11 +45,10 @@ function user_driver_licenses_controller()
 
     $action = strip_request_item('action', 'edit');
 
-    switch ($action) {
-        default:
-        case 'edit':
-            return user_driver_license_edit_controller();
-    }
+    return match ($action) {
+        'edit'  => user_driver_license_edit_controller(),
+        default => user_driver_license_edit_controller(),
+    };
 }
 
 /**
@@ -110,7 +109,7 @@ function user_driver_license_edit_controller()
             $driverLicense->drive_car = $request->has('has_license_car');
             $driverLicense->drive_3_5t = $request->has('has_license_3_5t_transporter');
             $driverLicense->drive_7_5t = $request->has('has_license_7_5t_truck');
-            $driverLicense->drive_12t= $request->has('has_license_12t_truck');
+            $driverLicense->drive_12t = $request->has('has_license_12t_truck');
             $driverLicense->drive_forklift = $request->has('has_license_forklift');
 
             if ($driverLicense->wantsToDrive()) {
@@ -138,7 +137,7 @@ function user_driver_license_edit_controller()
     }
 
     return [
-        sprintf(__('Edit %s driving license information'), $user_source->name),
-        UserDriverLicense_edit_view($user_source, $driverLicense)
+        sprintf(__('Edit %s driving license information'), $user_source->displayName),
+        UserDriverLicense_edit_view($user_source, $driverLicense),
     ];
 }

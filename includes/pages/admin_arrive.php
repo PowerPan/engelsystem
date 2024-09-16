@@ -115,7 +115,7 @@ function admin_arrive()
         ]);
 
         if ($usr->state->arrival_date) {
-            $day = $usr->state->arrival_date->format('Y-m-d');
+            $day = $usr->state->arrival_date->format(__('Y-m-d'));
             if (!isset($arrival_count_at_day[$day])) {
                 $arrival_count_at_day[$day] = 0;
             }
@@ -123,7 +123,7 @@ function admin_arrive()
         }
 
         if ($usr->personalData->planned_arrival_date) {
-            $day = $usr->personalData->planned_arrival_date->format('Y-m-d');
+            $day = $usr->personalData->planned_arrival_date->format(__('Y-m-d'));
             if (!isset($planned_arrival_count_at_day[$day])) {
                 $planned_arrival_count_at_day[$day] = 0;
             }
@@ -131,7 +131,7 @@ function admin_arrive()
         }
 
         if ($usr->personalData->planned_departure_date && $usr->state->arrived) {
-            $day = $usr->personalData->planned_departure_date->format('Y-m-d');
+            $day = $usr->personalData->planned_departure_date->format(__('Y-m-d'));
             if (!isset($planned_departure_count_at_day[$day])) {
                 $planned_departure_count_at_day[$day] = 0;
             }
@@ -152,7 +152,7 @@ function admin_arrive()
         $arrival_at_day[$day] = [
             'day'   => $day,
             'count' => $count,
-            'sum'   => $arrival_sum
+            'sum'   => $arrival_sum,
         ];
     }
 
@@ -163,7 +163,7 @@ function admin_arrive()
         $planned_arrival_at_day[$day] = [
             'day'   => $day,
             'count' => $count,
-            'sum'   => $planned_arrival_sum
+            'sum'   => $planned_arrival_sum,
         ];
     }
 
@@ -174,7 +174,7 @@ function admin_arrive()
         $planned_departure_at_day[$day] = [
             'day'   => $day,
             'count' => $count,
-            'sum'   => $planned_departure_sum
+            'sum'   => $planned_departure_sum,
         ];
     }
 
@@ -182,62 +182,62 @@ function admin_arrive()
         $msg . msg(),
         form([
             form_text('search', __('Search'), $search),
-            form_submit('submit', __('Search'))
+            form_submit('submit', __('Search')),
         ], page_link_to('admin_arrive')),
         table([
-            'name'                            => __('Nickname'),
+            'name'                            => __('Name'),
             'rendered_planned_arrival_date'   => __('Planned arrival'),
             'arrived'                         => __('Arrived?'),
             'rendered_arrival_date'           => __('Arrival date'),
             'rendered_planned_departure_date' => __('Planned departure'),
-            'actions'                         => ''
+            'actions'                         => '',
         ], $users_matched),
         div('row', [
             div('col-md-4', [
                 heading(__('Planned arrival statistics'), 3),
                 BarChart::render([
                     'count' => __('arrived'),
-                    'sum'   => __('arrived sum')
+                    'sum'   => __('arrived sum'),
                 ], [
                     'count' => '#090',
-                    'sum'   => '#888'
+                    'sum'   => '#888',
                 ], $planned_arrival_at_day),
                 table([
                     'day'   => __('Date'),
                     'count' => __('Count'),
-                    'sum'   => __('Sum')
-                ], $planned_arrival_at_day)
+                    'sum'   => __('Sum'),
+                ], $planned_arrival_at_day),
             ]),
             div('col-md-4', [
                 heading(__('Arrival statistics'), 3),
                 BarChart::render([
                     'count' => __('arrived'),
-                    'sum'   => __('arrived sum')
+                    'sum'   => __('arrived sum'),
                 ], [
                     'count' => '#090',
-                    'sum'   => '#888'
+                    'sum'   => '#888',
                 ], $arrival_at_day),
                 table([
                     'day'   => __('Date'),
                     'count' => __('Count'),
-                    'sum'   => __('Sum')
-                ], $arrival_at_day)
+                    'sum'   => __('Sum'),
+                ], $arrival_at_day),
             ]),
             div('col-md-4', [
                 heading(__('Planned departure statistics'), 3),
                 BarChart::render([
                     'count' => __('arrived'),
-                    'sum'   => __('arrived sum')
+                    'sum'   => __('arrived sum'),
                 ], [
                     'count' => '#090',
-                    'sum'   => '#888'
+                    'sum'   => '#888',
                 ], $planned_departure_at_day),
                 table([
                     'day'   => __('Date'),
                     'count' => __('Count'),
-                    'sum'   => __('Sum')
-                ], $planned_departure_at_day)
-            ])
-        ])
+                    'sum'   => __('Sum'),
+                ], $planned_departure_at_day),
+            ]),
+        ]),
     ]);
 }

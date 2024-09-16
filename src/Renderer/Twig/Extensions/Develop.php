@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Renderer\Twig\Extensions;
 
 use Engelsystem\Config\Config;
@@ -9,18 +11,10 @@ use Twig\TwigFunction;
 
 class Develop extends TwigExtension
 {
-    /** @var Config */
-    protected $config;
+    protected ?VarDumper $dumper = null;
 
-    /** @var VarDumper|null */
-    protected $dumper;
-
-    /**
-     * @param Config $config
-     */
-    public function __construct(Config $config)
+    public function __construct(protected Config $config)
     {
-        $this->config = $config;
     }
 
     /**
@@ -38,11 +32,7 @@ class Develop extends TwigExtension
         ];
     }
 
-    /**
-     * @param mixed $vars
-     * @return string
-     */
-    public function dump(...$vars): string
+    public function dump(mixed ...$vars): string
     {
         ob_start();
 
@@ -53,11 +43,7 @@ class Develop extends TwigExtension
         return ob_get_clean();
     }
 
-    /**
-     * @param mixed $vars
-     * @return string
-     */
-    public function dd(...$vars): string
+    public function dd(mixed ...$vars): string
     {
         $this->flushBuffers();
 
@@ -68,10 +54,7 @@ class Develop extends TwigExtension
         return '';
     }
 
-    /**
-     * @param VarDumper $dumper
-     */
-    public function setDumper($dumper)
+    public function setDumper(VarDumper $dumper): void
     {
         $this->dumper = $dumper;
     }
@@ -79,7 +62,7 @@ class Develop extends TwigExtension
     /**
      * @codeCoverageIgnore
      */
-    protected function exit()
+    protected function exit(): void
     {
         exit(1);
     }
@@ -87,7 +70,7 @@ class Develop extends TwigExtension
     /**
      * @codeCoverageIgnore
      */
-    protected function flushBuffers()
+    protected function flushBuffers(): void
     {
         ob_end_flush();
     }

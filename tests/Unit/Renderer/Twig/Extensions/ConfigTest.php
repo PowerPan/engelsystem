@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Renderer\Twig\Extensions;
 
 use Engelsystem\Config\Config as EngelsystemConfig;
@@ -12,7 +14,7 @@ class ConfigTest extends ExtensionTest
      * @covers \Engelsystem\Renderer\Twig\Extensions\Config::__construct
      * @covers \Engelsystem\Renderer\Twig\Extensions\Config::getFunctions
      */
-    public function testGetFunctions()
+    public function testGetFunctions(): void
     {
         /** @var EngelsystemConfig|MockObject $config */
         $config = $this->createMock(EngelsystemConfig::class);

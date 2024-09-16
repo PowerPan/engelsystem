@@ -1,33 +1,43 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Controllers;
 
-use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 
 trait HasUserNotifications
 {
-    /**
-     * @param string|array $value
-     * @param string $type
-     */
-    protected function addNotification($value, $type = 'messages')
+    protected function addNotification(string|array $value, NotificationType $type = NotificationType::MESSAGE): void
     {
+        $type = 'messages.' . $type->value;
         session()->set(
             $type,
-            array_merge(session()->get($type, []), [$value])
+            array_merge_recursive(session()->get($type, []), (array) $value)
         );
     }
 
     /**
-     * @return array
+     * @param NotificationType[]|null $types
+     * @return array<string,Collection|array<string>>
      */
-    protected function getNotifications(): array
+    protected function getNotifications(array $types = null): array
     {
         $return = [];
-        foreach (['errors', 'warnings', 'information', 'messages'] as $type) {
-            $return[$type] = Collection::make(Arr::flatten(session()->get($type, [])));
-            session()->remove($type);
+        $types = $types ?: [
+            NotificationType::ERROR,
+            NotificationType::WARNING,
+            NotificationType::INFORMATION,
+            NotificationType::MESSAGE,
+        ];
+
+        foreach ($types as $type) {
+            $type = $type->value;
+            $path = 'messages.' . $type;
+            $return[$type] = Collection::make(
+                session()->get($path, [])
+            )->flatten();
+            session()->remove($path);
         }
 
         return $return;

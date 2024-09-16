@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Database\Factories\Engelsystem\Models;
 
 use Engelsystem\Models\Faq;
@@ -8,12 +10,9 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 class FaqFactory extends Factory
 {
     /** @var string */
-    protected $model = Faq::class;
+    protected $model = Faq::class; // phpcs:ignore
 
-    /**
-     * @return array
-     */
-    public function definition()
+    public function definition(): array
     {
         return [
             'question' => $this->faker->text(100),

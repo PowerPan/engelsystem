@@ -86,22 +86,16 @@ msgid "Y-m-d"
 msgstr "d.m.Y"
 
 #: resources/views/layouts/parts/footer.twig:7
-#, fuzzy
-#| msgid "%s, from %s to %s"
 msgid "%1$s, from %2$s to %3$s"
-msgstr "%s, vom %s bis %s"
+msgstr "%1$s, vom %2$s bis %3$s"
 
 #: resources/views/layouts/parts/footer.twig:13
-#, fuzzy
-#| msgid "%s, starting %s"
 msgid "%1$s, starting %2$s"
-msgstr "%s, ab dem %s"
+msgstr "%1$s, ab dem %2$s"
 
 #: resources/views/layouts/parts/footer.twig:21
-#, fuzzy
-#| msgid "Event from %s to %s"
 msgid "Event from %1$s to %2$s"
-msgstr "Event von %s bis %s"
+msgstr "Event von %1$s bis %2$s"
 
 #: resources/views/layouts/parts/footer.twig:34
 msgid "Bugs / Features"
@@ -136,7 +130,6 @@ msgid "form.submit"
 msgstr "Absenden"
 
 #: resources/views/pages/credits.twig:17
-#, fuzzy
 msgid "Source code"
 msgstr "Quellcode"
 
@@ -204,12 +197,6 @@ msgid "Please read about the jobs you can do to help us."
 msgstr ""
 "Bitte informiere Dich über die Tätigkeiten bei denen Du uns helfen kannst."
 
-#: resources/views/pages/login.twig:99
-#: includes/controller/angeltypes_controller.php:69
-#: includes/view/AngelTypes_view.php:501 includes/view/AngelTypes_view.php:598
-msgid "Teams/Job description"
-msgstr "Team-/Aufgabenbeschreibung"
-
 #: resources/views/pages/login.twig:105
 msgid "Please note: You have to activate cookies!"
 msgstr "Hinweis: Cookies müssen aktiviert sein!"
@@ -233,7 +220,7 @@ msgstr "Passwort wiederholen"
 #: includes/view/ShiftEntry_view.php:118 includes/view/ShiftEntry_view.php:141
 #: includes/view/ShiftEntry_view.php:207 includes/view/ShiftTypes_view.php:64
 #: includes/view/UserDriverLicenses_view.php:54
-#: includes/view/UserWorkLog_view.php:49 includes/view/User_view.php:84
+#: includes/view/User_view.php:84
 #: includes/view/User_view.php:93 includes/view/User_view.php:98
 #: includes/view/User_view.php:103 includes/view/User_view.php:154
 msgid "Save"
@@ -245,7 +232,6 @@ msgstr ""
 "Wir haben dir eine eMail mit einem Link zum Passwort-zurücksetzen geschickt."
 
 #: resources/views/pages/password/reset-success.twig:9
-#: includes/pages/user_settings.php:120
 msgid "Password saved."
 msgstr "Passwort gespeichert."
 
@@ -331,7 +317,7 @@ msgstr "bearbeiten"
 #: includes/view/ShiftEntry_view.php:28 includes/view/ShiftEntry_view.php:57
 #: includes/view/ShiftTypes_view.php:28 includes/view/ShiftTypes_view.php:96
 #: includes/view/ShiftTypes_view.php:128 includes/view/Shifts_view.php:156
-#: includes/view/UserWorkLog_view.php:21 includes/view/User_view.php:501
+#: includes/view/User_view.php:501
 msgid "delete"
 msgstr "löschen"
 
@@ -388,7 +374,6 @@ msgid "The buildup start date has to be before the teardown end date."
 msgstr "Das Aufbau Start Datum muss vor dem Abbau Ende Datum liegen."
 
 #: includes/controller/event_config_controller.php:120
-#: includes/pages/user_settings.php:93
 msgid "Settings saved."
 msgstr "Einstellungen gespeichert."
 
@@ -764,30 +749,6 @@ msgstr "Deine Führerschein-Infos wurden gelöscht."
 msgid "Edit %s driving license information"
 msgstr "Bearbeite die Führerschein-Infos von %s"
 
-#: includes/controller/user_worklog_controller.php:22
-msgid "Work log entry deleted."
-msgstr "Arbeitseinsatz gelöscht."
-
-#: includes/controller/user_worklog_controller.php:52
-msgid "Work log entry updated."
-msgstr "Arbeitseinsatz geändert."
-
-#: includes/controller/user_worklog_controller.php:81
-msgid "Please enter work date."
-msgstr "Bitte Einsatzdatum angeben."
-
-#: includes/controller/user_worklog_controller.php:87
-msgid "Please enter work hours in format ##[.##]."
-msgstr "Bitte Stunden im Format ##[.##| eingeben."
-
-#: includes/controller/user_worklog_controller.php:93
-msgid "Please enter a comment."
-msgstr "Bitte Kommentar angeben."
-
-#: includes/controller/user_worklog_controller.php:123
-msgid "Work log entry created."
-msgstr "Arbeitseinsatz angelegt."
-
 #: includes/controller/users_controller.php:64
 msgid "You cannot delete yourself."
 msgstr "Du kannst Dich nicht selber löschen."
@@ -835,6 +796,9 @@ msgstr "Alle Benutzer"
 msgid "User %s could not be notified by email due to an error."
 msgstr ""
 "Aufgrund eines Fehlers konnte dem User %s keine E-Mail gesendet werden."
+
+msgid "%s (%s as %s) in %s, %s - %s"
+msgstr "%s (%s als %s) in %s, %s - %s"
 
 #: includes/mailer/shifts_mailer.php:17
 msgid "A Shift you are registered on has changed:"
@@ -947,7 +911,6 @@ msgstr "Engel wurden markiert."
 #: includes/pages/admin_active.php:98 includes/pages/admin_rooms.php:155
 #: includes/pages/admin_rooms.php:198 includes/pages/admin_shifts.php:333
 #: includes/view/UserAngelTypes_view.php:147
-#: includes/view/UserWorkLog_view.php:64 includes/view/UserWorkLog_view.php:82
 #: includes/view/User_view.php:121 includes/view/User_view.php:145
 msgid "back"
 msgstr "zurück"
@@ -988,11 +951,11 @@ msgstr "entferne aktiv"
 
 #: includes/pages/admin_active.php:261
 msgid "got t-shirt"
-msgstr "hat t-shirt"
+msgstr "T-Shirt bekommen"
 
 #: includes/pages/admin_active.php:274
 msgid "remove t-shirt"
-msgstr "entferne t-shirt"
+msgstr "entferne T-Shirt"
 
 #: includes/pages/admin_active.php:299 includes/pages/admin_arrive.php:202
 #: includes/pages/admin_arrive.php:217 includes/pages/admin_arrive.php:232
@@ -1058,7 +1021,7 @@ msgid "T-shirt?"
 msgstr "T-Shirt?"
 
 #: includes/pages/admin_active.php:324
-msgid "Shirt statistics"
+msgid "Shirt statistic"
 msgstr "T-Shirt Statistik"
 
 #: includes/pages/admin_active.php:327
@@ -1579,14 +1542,14 @@ msgstr ""
 
 #: includes/pages/guest_login.php:82
 #, php-format
-msgid "Your nick &quot;%s&quot; already exists."
-msgstr "Der Nick &quot;%s&quot; existiert schon."
+msgid "Your nick \"%s\" already exists."
+msgstr "Der Nick \"%s\" existiert bereits."
 
 #: includes/pages/guest_login.php:86
 msgid "Please enter a nickname."
 msgstr "Gib bitte einen Nick an."
 
-#: includes/pages/guest_login.php:93 includes/pages/user_settings.php:32
+#: includes/pages/guest_login.php:93
 msgid "E-mail address is not correct."
 msgstr "Die E-Mail Adresse ist nicht in Ordnung."
 
@@ -1594,7 +1557,7 @@ msgstr "Die E-Mail Adresse ist nicht in Ordnung."
 msgid "E-mail address is already used by another user."
 msgstr "Die E-Mail Adresse wurde bereits von einem anderen User benutzt."
 
-#: includes/pages/guest_login.php:101 includes/pages/user_settings.php:36
+#: includes/pages/guest_login.php:101
 msgid "Please enter your e-mail."
 msgstr "Bitte gib Deine E-Mail-Adresse ein."
 
@@ -1608,7 +1571,6 @@ msgid "Your password is too short (please use at least %s characters)."
 msgstr "Dein Passwort ist zu kurz (Bitte mindestens %s Zeichen nutzen)."
 
 #: includes/pages/guest_login.php:140 includes/pages/guest_login.php:144
-#: includes/pages/user_settings.php:54
 msgid ""
 "Please enter your planned date of arrival. It should be after the buildup "
 "start date and before teardown end date."
@@ -1616,7 +1578,7 @@ msgstr ""
 "Bitte gib Dein geplantes Ankunftsdatum an. Es sollte nach dem Aufbaubeginn "
 "und vor dem Abbauende liegen."
 
-#: includes/pages/guest_login.php:166 includes/pages/user_settings.php:82
+#: includes/pages/guest_login.php:166
 msgid "For dect numbers are only 40 digits allowed."
 msgstr "Die DECT Nummer darf nur 40 Zeichen lang sein."
 
@@ -1761,12 +1723,12 @@ msgstr "API-Key zurücksetzen"
 
 #: includes/pages/user_myshifts.php:44
 msgid ""
-"If you reset the key, the url to your iCal- and JSON-export and your atom "
+"If you reset the key, the url to your iCal- and JSON-export and your atom/rss "
 "feed changes! You have to update it in every application using one of these "
 "exports."
 msgstr ""
 "Wenn du den API-Key zurücksetzt, ändert sich die URL zu deinem iCal-, JSON-"
-"Export und Atom Feed! Du musst diesen überall ändern, wo er in Benutzung ist."
+"Export und Atom/RSS Feed! Du musst diesen überall ändern, wo er in Benutzung ist."
 
 #: includes/pages/user_myshifts.php:47
 msgid "Continue"
@@ -1809,12 +1771,11 @@ msgstr "Unvollständiger Aufruf, fehlende Fragen ID."
 msgid "No question found."
 msgstr "Keine Frage gefunden."
 
-#: includes/pages/user_settings.php:11 includes/sys_menu.php:69
+#: includes/sys_menu.php:69
 #: includes/view/User_view.php:616
 msgid "Settings"
 msgstr "Einstellungen"
 
-#: includes/pages/user_settings.php:68
 msgid ""
 "Please enter your planned date of departure. It should be after your planned "
 "arrival date and after buildup start date and before teardown end date."
@@ -1822,11 +1783,9 @@ msgstr ""
 "Bitte gibt dein geplantes Abreisedatum an. Es sollte nach Deinem "
 "Anreisedatum, nach dem Aufbaubeginn und vor dem Abbauende liegen."
 
-#: includes/pages/user_settings.php:113
 msgid "-> not OK. Please try again."
 msgstr "-> Nicht OK. Bitte erneut versuchen."
 
-#: includes/pages/user_settings.php:115
 msgid "Your password is to short (please use at least 6 characters)."
 msgstr "Dein Passwort ist zu kurz (Bitte mindestens 6 Zeichen nutzen)."
 
@@ -1973,7 +1932,6 @@ msgstr "Möchtest Du den Engeltypen %s löschen?"
 #: includes/view/UserAngelTypes_view.php:98
 #: includes/view/UserAngelTypes_view.php:122
 #: includes/view/UserAngelTypes_view.php:175
-#: includes/view/UserWorkLog_view.php:20
 msgid "cancel"
 msgstr "abbrechen"
 
@@ -2110,25 +2068,9 @@ msgstr "Selbst-Eintragen erlaubt"
 msgid "Membership"
 msgstr "Mitgliedschaft"
 
-#: includes/view/AngelTypes_view.php:551
-msgid ""
-"This angeltype requires the attendance at an introduction meeting. "
-"You might find additional information in the description."
-msgstr ""
-"Dieser Engeltyp benötigt eine Einweisung bei einem Einführungstreffen."
-"Weitere Informationen findest du möglicherweise in der Beschreibung."
-
 #: includes/view/AngelTypes_view.php:586
 msgid "FAQ"
 msgstr "FAQ"
-
-#: includes/view/AngelTypes_view.php:591
-msgid ""
-"Here is the list of teams and their tasks. If you have questions, read the "
-"FAQ."
-msgstr ""
-"Hier ist die Liste der Teams und ihrer Aufgaben. Wenn Du Fragen hast, schaue "
-"im FAQ nach."
 
 #: includes/view/EventConfig_view.php:91
 msgid "Event Name"
@@ -2286,7 +2228,6 @@ msgstr "Möchtest du den folgenden User für die Schicht eintragen?"
 
 #: includes/view/ShiftEntry_view.php:92 includes/view/ShiftEntry_view.php:117
 #: includes/view/UserAngelTypes_view.php:153
-#: includes/view/UserWorkLog_view.php:45
 msgid "User"
 msgstr "Benutzer"
 
@@ -2429,6 +2370,9 @@ msgstr "Möchtest Du wirklich %s zu %s hinzufügen?"
 msgid "Confirm user"
 msgstr "Benutzer bestätigen"
 
+msgid "Hide at Registration"
+msgstr "Ausblenden bei Registrierung"
+
 #: includes/view/UserAngelTypes_view.php:176
 msgid "save"
 msgstr "Speichern"
@@ -2474,34 +2418,13 @@ msgstr "7,5t LKW"
 msgid "Truck 12t"
 msgstr "12t LKW"
 
-#: includes/view/UserWorkLog_view.php:15
 #, php-format
 msgid "Do you want to delete the worklog entry for %s?"
 msgstr "Möchtest du den Arbeitseinsatz von %s wirklich löschen?"
 
-#: includes/view/UserWorkLog_view.php:32
-msgid "Delete work log entry"
-msgstr "Arbeitseinsatz gelöscht."
-
-#: includes/view/UserWorkLog_view.php:46
-msgid "Work date"
-msgstr "Einsatzdatum"
-
-#: includes/view/UserWorkLog_view.php:47
-msgid "Work hours"
-msgstr "Arbeitsstunden"
-
-#: includes/view/UserWorkLog_view.php:48 includes/view/User_view.php:572
+#: includes/view/User_view.php:572
 msgid "Comment"
 msgstr "Kommentar"
-
-#: includes/view/UserWorkLog_view.php:94
-msgid "Edit work log entry"
-msgstr "Arbeitseinsatz bearbeiten"
-
-#: includes/view/UserWorkLog_view.php:102
-msgid "Add work log entry"
-msgstr "Arbeitseinsatz hinzufügen"
 
 msgid "Pronoun"
 msgstr "Pronomen"
@@ -2518,8 +2441,8 @@ msgid "Planned date of departure"
 msgstr "Geplanter Abreisetag"
 
 #: includes/view/User_view.php:83
-msgid "Please visit the angeltypes page to manage your angeltypes."
-msgstr "Bitte benutze die Engeltypen-Seite um deine Engeltypen zu verwalten."
+msgid "You can manage your Angeltypes <a href=\"%s\">on the Angeltypes page</a>."
+msgstr "Du kannst deine Engeltypen <a href=\"%s\">auf der Engeltypen-Seite</a> verwalten."
 
 #: includes/view/User_view.php:124
 msgid ""
@@ -2535,8 +2458,13 @@ msgstr "Dein Passwort"
 
 #: includes/view/User_view.php:148
 #, php-format
-msgid "Angel should receive at least  %d vouchers."
-msgstr "Engel sollte mindestens %d Gutscheine bekommen."
+msgid "Angel can receive another %d vouchers."
+msgstr "Engel kann noch %d Gutscheine bekommen."
+
+#: includes/view/User_view.php:148
+#, php-format
+msgid "Angel can receive another %d vouchers and is FA."
+msgstr "Engel kann noch %d Gutscheine bekommen und ist FA."
 
 #: includes/view/User_view.php:153
 msgid "Number of vouchers given out"
@@ -2600,7 +2528,7 @@ msgstr "Schicht endete %c"
 
 #: includes/view/User_view.php:409
 msgid "sign off"
-msgstr "abmelden"
+msgstr "austragen"
 
 #: includes/view/User_view.php:461
 msgid "Sum:"
@@ -2644,12 +2572,8 @@ msgid "driving license"
 msgstr "Führerschein"
 
 #: includes/view/User_view.php:608
-msgid "Edit vouchers"
-msgstr "Gutschein bearbeiten"
-
-#: includes/view/User_view.php:612
-msgid "Add work log"
-msgstr "Neuer Arbeitseinsatz"
+msgid "Vouchers"
+msgstr "Gutscheine"
 
 #: includes/view/User_view.php:620
 msgid "iCal Export"
@@ -2711,6 +2635,10 @@ msgstr "Keine Gutscheine bekommen"
 msgid "out of %s"
 msgstr "von %s"
 
+#: includes/view/User_view.php:89
+msgid "Show mobile number to other users to contact me"
+msgstr "Mache meine Handynummer für andere Benutzer sichtbar"
+
 #: includes/view/User_view.php:797
 msgid "Rights"
 msgstr "Rechte"
@@ -2751,6 +2679,87 @@ msgid ""
 msgstr ""
 "Bitte eine DECT-Telefonnummer in den Einstellungen eingeben. Wenn du noch "
 "keine Nummer hast, bitte einfach \"-\" angeben."
+
+msgid ""
+"Here you can change the user entry. Under the item 'Arrived' the angel is marked as present, "
+"a yes at Active means that the angel was active."
+msgstr ""
+"Hier kannst du den Benutzer Eintrag ändern. Unter dem Punkt 'Angekommen' wird der Engel als anwesend markiert, "
+"ein Ja bei Aktiv bedeutet, dass der Engel aktiv war."
+
+msgid ""
+"If the angel is active, it can claim a T-shirt. If T-shirt is set to 'Yes', the angel already got their T-shirt."
+msgstr ""
+"Ist der Engel Aktiv, hat er damit Anspruch auf ein T-Shirt. Wenn T-Shirt ein 'Ja' enthält, bedeutet dies, "
+"dass der Engel bereits sein T-Shirt erhalten hat."
+
+msgid ""
+"If the angel was Active, this entitles him to a T-shirt. If T-shirt contains a 'Ja', "
+"it means that the angel has already received his T-shirt."
+msgstr ""
+"War der Engel Aktiv, hat er damit Anspruch auf ein T-Shirt. Wenn T-Shirt ein 'Ja' enthält, "
+"bedeutet dies, dass der Engel bereits sein T-Shirt erhalten hat."
+
+msgid "Please visit the angeltypes page or the users profile to manage the users angeltypes."
+msgstr "Bitte besuche die Seite Engeltypen oder das Benutzerprofil, um die Engeltypen des Benutzers zu verwalten."
+
+msgid "Here you can reset the password of this angel:"
+msgstr "Hier kannst du das Passwort für diesen Engel zurücksetzen:"
+
+msgid "Here you can define the user groups of the angel:"
+msgstr "Hier kannst du die Benutzergruppen des Engels definieren:"
+
+msgid "User groups saved."
+msgstr "Benutzergruppen gespeichert."
+
+msgid "You cannot edit angels with more rights."
+msgstr "Du kannst keine Engel mit mehr Rechten bearbeiten."
+
+msgid "You cannot edit your own rights."
+msgstr "Du kannst deine eigenen Rechte nicht bearbeiten."
+
+msgid "Changes where saved."
+msgstr "Änderung wurde gespeichert."
+
+msgid "Password reset done."
+msgstr "Passwort zurückgesetzt."
+
+msgid "The entries must match and must not be empty!"
+msgstr "Die Einträge müssen übereinstimmen und dürfen nicht leer sein!"
+
+msgid "Number of shifts: %s"
+msgstr "Anzahl an Schichten: %s"
+
+msgid "If the angel is active, it can claim a goodie. If goodie is set to 'Yes', the angel already got their goodie."
+msgstr "Ist der Engel Aktiv, hat er damit Anspruch auf ein Goodie. Wenn Goodie ein 'Ja' enthält, bedeutet dies, "
+"dass der Engel bereits sein Goodie erhalten hat."
+
+msgid "Goodie"
+msgstr "Goodie"
+
+msgid "Your goodie score"
+msgstr "Dein Goodie Score"
+
+msgid "Given goodies"
+msgstr "Ausgegebene Goodies"
+
+msgid "Goodie statistic"
+msgstr "Goodie Statistik"
+
+msgid "remove goodie"
+msgstr "entferne Goodie"
+
+msgid "got goodie"
+msgstr "Goodie bekommen"
+
+msgid "Goodie?"
+msgstr "Goodie?"
+
+msgid "Angel has got a goodie."
+msgstr "Engel hat ein Goodie bekommen."
+
+msgid "Angel has got no goodie."
+msgstr "Engel hat kein Goodie bekommen."
 
 #: src/Middleware/LegacyMiddleware.php:83
 msgid "page.404.text"
@@ -2799,6 +2808,15 @@ msgstr "Löschen"
 
 msgid "form.updated"
 msgstr "Aktualisiert"
+
+msgid "form.cancel"
+msgstr "Abbrechen"
+
+msgid "form.markdown"
+msgstr "Du kannst hier Markdown verwenden"
+
+msgid "form.required"
+msgstr "Pflichtfeld"
 
 msgid "schedule.import"
 msgstr "Programm importieren"
@@ -2864,6 +2882,9 @@ msgstr "Titel"
 msgid "schedule.import.shift.room"
 msgstr "Raum"
 
+msgid "shifts_history.schedule"
+msgstr "Programm: %s"
+
 msgid "news.title"
 msgstr "News"
 
@@ -2875,6 +2896,9 @@ msgstr "+"
 
 msgid "news.is_meeting"
 msgstr "[Treffen]"
+
+msgid "news.edit.is_important"
+msgstr "Wichtig"
 
 msgid "news.read_more"
 msgstr "Weiterlesen"
@@ -2929,6 +2953,70 @@ msgstr "Nachricht"
 
 msgid "settings.settings"
 msgstr "Einstellungen"
+
+msgid "settings.profile.user_details.info"
+msgstr "Hier kannst Du Deine Details ändern."
+
+msgid "settings.profile.entry_required"
+msgstr "Pflichtfeld!"
+
+msgid "settings.profile.nick"
+msgstr "Nick"
+
+msgid "settings.profile.pronoun"
+msgstr "Pronomen"
+
+msgid "settings.profile.pronoun.info"
+msgstr "Wird auf deiner Profilseite und in Engellisten angezeigt."
+
+msgid "settings.profile.firstname"
+msgstr "Vorname"
+
+msgid "settings.profile.lastname"
+msgstr "Nachname"
+
+msgid "settings.profile.planned_arrival_date"
+msgstr "Geplanter Ankunftstag"
+
+msgid "settings.profile.planned_departure_date"
+msgstr "Geplanter Abreisetag"
+
+msgid "settings.profile.dect"
+msgstr "DECT"
+
+msgid "settings.profile.mobile"
+msgstr "Handy"
+
+msgid "settings.profile.mobile_show"
+msgstr "Mache meine Handynummer für andere Benutzer sichtbar."
+
+msgid "settings.profile.email"
+msgstr "E-Mail"
+
+msgid "settings.profile.email_shiftinfo"
+msgstr "Das %s darf mir E-Mails senden (z.B. wenn sich meine Schichten ändern)."
+
+msgid "settings.profile.email_news"
+msgstr "Benachrichtige mich bei neuen News."
+
+msgid "settings.profile.email_messages"
+msgstr "Benachrichtige mich bei neuen privaten Nachrichten."
+
+msgid "settings.profile.email_by_human_allowed"
+msgstr "Erlaube Himmel-Engeln dich per Mail zu kontaktieren."
+
+msgid "settings.profile.email_goody"
+msgstr "Um Voucher zu erhalten, stimme zu, dass Nick, E-Mail-Adresse, geleistete Arbeit und Shirtgröße "
+"bis zum nächsten gleichartigen Event gespeichert werden."
+
+msgid "settings.profile.privacy"
+msgstr "Dies kann jederzeit durch eine E-Mail an <a href=\"mailto:%s\">%1$s</a> widerrufen werden."
+
+msgid "settings.profile.shirt_size"
+msgstr "T-Shirt-Größe"
+
+msgid "settings.profile.angeltypes.info"
+msgstr "Du kannst deine Engeltypen <a href=\"%s\">auf der Engeltypen-Seite</a> verwalten."
 
 msgid "settings.password"
 msgstr "Passwort"
@@ -3023,6 +3111,9 @@ msgstr "Antwort"
 msgid "user.edit.shirt"
 msgstr "Shirt bearbeiten"
 
+msgid "user.edit.goodie"
+msgstr "Goodie bearbeiten"
+
 msgid "form.shirt"
 msgstr "Shirt"
 
@@ -3041,6 +3132,9 @@ msgstr "Angekommen"
 msgid "user.got_shirt"
 msgstr "Shirt bekommen"
 
+msgid "user.got_goodie"
+msgstr "Goodie bekommen"
+
 msgid "message.title"
 msgstr "Nachrichten"
 
@@ -3058,3 +3152,76 @@ msgstr "Engel"
 
 msgid "date"
 msgstr "Datum"
+
+msgid "worklog.add"
+msgstr "Arbeitseinsatz hinzufügen"
+
+msgid "worklog.edit"
+msgstr "Arbeitseinsatz bearbeiten"
+
+msgid "worklog.date"
+msgstr "Einsatzdatum"
+
+msgid "worklog.hours"
+msgstr "Arbeitsstunden"
+
+msgid "worklog.comment"
+msgstr "Kommentar"
+
+msgid "worklog.delete"
+msgstr "Arbeitseinsatz löschen"
+
+msgid "worklog.delete.info"
+msgstr "Möchtest du den Arbeitseinsatz von %s wirklich löschen?"
+
+msgid "angeltypes.angeltypes"
+msgstr "Engeltypen"
+
+msgid "angeltypes.about"
+msgstr "Teams-/Aufgabenbeschreibung"
+
+msgid "angeltypes.about.text"
+msgstr "Hier findest Du die Liste der Teams und ihrer Aufgaben. Wenn Du weitere Fragen hast, schaue in den FAQ nach."
+
+msgid "angeltypes.restricted.hint"
+msgstr "Dieser Engeltyp benötigt eine Einweisung bei einem Einführungstreffen. "
+"Weitere Informationen findest du möglicherweise in der Beschreibung."
+
+msgid "angeltypes.name"
+msgstr "Name"
+
+msgid "angeltypes.dect"
+msgstr "DECT"
+
+msgid "angeltypes.email"
+msgstr "E-Mail"
+
+msgid "registration.register"
+msgstr "Registrieren"
+
+msgid "room.rooms"
+msgstr "Räume"
+
+msgid "room.name"
+msgstr "Name"
+
+msgid "room.dect"
+msgstr "DECT"
+
+msgid "room.map_url"
+msgstr "Karte"
+
+msgid "room.description"
+msgstr "Beschreibung"
+
+msgid "room.required_angels"
+msgstr "Benötigte Engel"
+
+msgid "room.map_url.info"
+msgstr "Die Karte wird auf der Raum-Seite als iframe eingebettet."
+
+msgid "room.create.title"
+msgstr "Raum erstellen"
+
+msgid "room.edit.title"
+msgstr "Raum bearbeiten"

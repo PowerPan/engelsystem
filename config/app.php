@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 // Application config
 
 return [
@@ -64,11 +66,19 @@ return [
         //      a list of
         //      'Class@method' or 'Class' (which uses @handle),
         //      ['Class', 'method'],
-        //      callable like [$instance, 'method] or 'function'
+        //      callable like [$instance, 'method'] or 'function'
         //      or $function
         // ]
+
+        'message.created' => \Engelsystem\Events\Listener\Messages::class . '@created',
+
         'news.created' => \Engelsystem\Events\Listener\News::class . '@created',
 
         'oauth2.login' => \Engelsystem\Events\Listener\OAuth2::class . '@login',
+
+        'shift.entry.deleting' => [
+            \Engelsystem\Events\Listener\Shift::class . '@deletedEntryCreateWorklog',
+            \Engelsystem\Events\Listener\Shift::class . '@deletedEntrySendEmail',
+        ],
     ],
 ];

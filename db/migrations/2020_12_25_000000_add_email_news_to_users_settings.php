@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Migrations;
 
 use Engelsystem\Database\Migration\Migration;
@@ -12,26 +14,20 @@ class AddEmailNewsToUsersSettings extends Migration
     /**
      * Run the migration
      */
-    public function up()
+    public function up(): void
     {
-        $this->schema->table(
-            'users_settings',
-            function (Blueprint $table) {
-                $table->boolean('email_news')->default(false)->after('email_shiftinfo');
-            }
-        );
+        $this->schema->table('users_settings', function (Blueprint $table): void {
+            $table->boolean('email_news')->default(false)->after('email_shiftinfo');
+        });
     }
 
     /**
      * Reverse the migration
      */
-    public function down()
+    public function down(): void
     {
-        $this->schema->table(
-            'users_settings',
-            function (Blueprint $table) {
-                $table->dropColumn('email_news');
-            }
-        );
+        $this->schema->table('users_settings', function (Blueprint $table): void {
+            $table->dropColumn('email_news');
+        });
     }
 }

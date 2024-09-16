@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Migrations;
 
 use Engelsystem\Database\Migration\Migration;
@@ -12,34 +14,28 @@ class AddShiftsDescription extends Migration
     /**
      * Run the migration
      */
-    public function up()
+    public function up(): void
     {
         if (!$this->schema->hasTable('Shifts')) {
             return;
         }
 
-        $this->schema->table(
-            'Shifts',
-            function (Blueprint $table) {
-                $table->text('description')->nullable()->after('shifttype_id');
-            }
-        );
+        $this->schema->table('Shifts', function (Blueprint $table): void {
+            $table->text('description')->nullable()->after('shifttype_id');
+        });
     }
 
     /**
      * Reverse the migration
      */
-    public function down()
+    public function down(): void
     {
         if (!$this->schema->hasTable('Shifts')) {
             return;
         }
 
-        $this->schema->table(
-            'Shifts',
-            function (Blueprint $table) {
-                $table->dropColumn('description');
-            }
-        );
+        $this->schema->table('Shifts', function (Blueprint $table): void {
+            $table->dropColumn('description');
+        });
     }
 }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Mail\Transport;
 
 use Engelsystem\Mail\Transport\LogTransport;
@@ -15,7 +17,7 @@ class LogTransportTest extends TestCase
      * @covers \Engelsystem\Mail\Transport\LogTransport::__construct
      * @covers \Engelsystem\Mail\Transport\LogTransport::doSend
      */
-    public function testSend()
+    public function testSend(): void
     {
         $logger = new TestLogger();
         $email = (new Email())
@@ -33,12 +35,12 @@ class LogTransportTest extends TestCase
     /**
      * @covers \Engelsystem\Mail\Transport\LogTransport::__toString
      */
-    public function testToString()
+    public function testToString(): void
     {
         /** @var LoggerInterface|MockObject $logger */
         $logger = $this->getMockForAbstractClass(LoggerInterface::class);
 
         $transport = new LogTransport($logger);
-        $this->assertEquals('log://', (string)$transport);
+        $this->assertEquals('log://', (string) $transport);
     }
 }

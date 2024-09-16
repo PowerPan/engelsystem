@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Controllers;
 
 use Engelsystem\Controllers\HealthController;
@@ -13,7 +15,7 @@ class HealthControllerTest extends TestCase
      * @covers \Engelsystem\Controllers\HealthController::__construct
      * @covers \Engelsystem\Controllers\HealthController::index
      */
-    public function testIndex()
+    public function testIndex(): void
     {
         /** @var Response|MockObject $response */
         $response = $this->createMock(Response::class);

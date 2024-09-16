@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Controllers;
 
 use Engelsystem\Controllers\ApiController;
@@ -12,7 +14,7 @@ class ApiControllerTest extends TestCase
      * @covers \Engelsystem\Controllers\ApiController::__construct
      * @covers \Engelsystem\Controllers\ApiController::index
      */
-    public function testIndex()
+    public function testIndex(): void
     {
         $controller = new ApiController(new Response());
 

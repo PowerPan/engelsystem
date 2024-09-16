@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Controllers\Metrics;
 
 use DMS\PHPUnitExtensions\ArraySubset\ArraySubsetAsserts;
@@ -26,7 +28,7 @@ class ControllerTest extends TestCase
      * @covers \Engelsystem\Controllers\Metrics\Controller::metrics
      * @covers \Engelsystem\Controllers\Metrics\Controller::formatStats
      */
-    public function testMetrics()
+    public function testMetrics(): void
     {
         /** @var Response|MockObject $response */
         /** @var Request|MockObject $request */
@@ -41,7 +43,7 @@ class ControllerTest extends TestCase
 
         $engine->expects($this->once())
             ->method('get')
-            ->willReturnCallback(function ($path, $data) use ($response) {
+            ->willReturnCallback(function ($path, $data) {
                 $this->assertEquals('/metrics', $path);
                 $this->assertArrayHasKey('info', $data);
                 $this->assertArrayHasKey('users', $data);
@@ -69,7 +71,7 @@ class ControllerTest extends TestCase
                 $this->assertArraySubset(['tshirt_sizes' => [
                     'type' => 'gauge',
                     ['labels' => ['size' => 'L'], 2],
-                    ['labels' => ['size' => 'XL'], 0]
+                    ['labels' => ['size' => 'XL'], 0],
                 ]], $data);
 
                 return 'metrics return';
@@ -173,7 +175,7 @@ class ControllerTest extends TestCase
      * @covers \Engelsystem\Controllers\Metrics\Controller::checkAuth
      * @covers \Engelsystem\Controllers\Metrics\Controller::stats
      */
-    public function testStats()
+    public function testStats(): void
     {
         /** @var Response|MockObject $response */
         /** @var Request|MockObject $request */
@@ -207,7 +209,7 @@ class ControllerTest extends TestCase
         $stats->expects($this->once())
             ->method('workSeconds')
             ->with(true)
-            ->willReturn((int)(60 * 60 * 99.47));
+            ->willReturn((int) (60 * 60 * 99.47));
         $this->setExpects($stats, 'newUsers', null, 3);
         $this->setExpects($stats, 'arrivedUsers', null, 10, $this->exactly(2));
         $this->setExpects($stats, 'currentlyWorkingUsers', null, 5);
@@ -219,7 +221,7 @@ class ControllerTest extends TestCase
     /**
      * @covers \Engelsystem\Controllers\Metrics\Controller::checkAuth
      */
-    public function testCheckAuth()
+    public function testCheckAuth(): void
     {
         /** @var Response|MockObject $response */
         /** @var Request|MockObject $request */
@@ -243,9 +245,6 @@ class ControllerTest extends TestCase
         $controller->stats();
     }
 
-    /**
-     * @return array
-     */
     protected function getMocks(): array
     {
         /** @var Response|MockObject $response */

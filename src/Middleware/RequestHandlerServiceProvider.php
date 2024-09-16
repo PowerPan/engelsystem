@@ -1,12 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Middleware;
 
 use Engelsystem\Container\ServiceProvider;
 
 class RequestHandlerServiceProvider extends ServiceProvider
 {
-    public function register()
+    public function register(): void
     {
         /** @var RequestHandler $requestHandler */
         $requestHandler = $this->app->make(RequestHandler::class);

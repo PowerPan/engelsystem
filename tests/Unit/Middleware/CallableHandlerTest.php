@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Middleware;
 
 use Engelsystem\Container\Container;
@@ -16,10 +18,10 @@ use stdClass;
 
 class CallableHandlerTest extends TestCase
 {
-    public function provideCallable()
+    public function provideCallable(): array
     {
         return [
-            [function () {
+            [function (): void {
             }],
             [[$this, 'provideCallable']],
             [[HasStaticMethod::class, 'foo']],
@@ -30,9 +32,8 @@ class CallableHandlerTest extends TestCase
      * @dataProvider provideCallable
      * @covers       \Engelsystem\Middleware\CallableHandler::__construct
      * @covers       \Engelsystem\Middleware\CallableHandler::getCallable
-     * @param callable $callable
      */
-    public function testInit($callable)
+    public function testInit(callable $callable): void
     {
         $handler = new CallableHandler($callable);
 
@@ -42,7 +43,7 @@ class CallableHandlerTest extends TestCase
     /**
      * @covers \Engelsystem\Middleware\CallableHandler::process
      */
-    public function testProcess()
+    public function testProcess(): void
     {
         /** @var ServerRequestInterface|MockObject $request */
         /** @var ResponseInterface|MockObject $response */
@@ -62,7 +63,7 @@ class CallableHandlerTest extends TestCase
     /**
      * @covers \Engelsystem\Middleware\CallableHandler::handle
      */
-    public function testHandler()
+    public function testHandler(): void
     {
         /** @var ServerRequestInterface|MockObject $request */
         /** @var ResponseInterface|MockObject $response */
@@ -81,7 +82,7 @@ class CallableHandlerTest extends TestCase
     /**
      * @covers \Engelsystem\Middleware\CallableHandler::execute
      */
-    public function testExecute()
+    public function testExecute(): void
     {
         /** @var ServerRequestInterface|MockObject $request */
         /** @var Response|MockObject $response */
@@ -119,9 +120,6 @@ class CallableHandlerTest extends TestCase
         $middleware->handle($request);
     }
 
-    /**
-     * @return array
-     */
     protected function getMocks(): array
     {
         /** @var ServerRequestInterface|MockObject $request */

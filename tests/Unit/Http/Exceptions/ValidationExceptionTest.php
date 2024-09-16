@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Http\Exceptions;
 
 use Engelsystem\Http\Exceptions\ValidationException;
@@ -13,7 +15,7 @@ class ValidationExceptionTest extends TestCase
      * @covers \Engelsystem\Http\Exceptions\ValidationException::__construct
      * @covers \Engelsystem\Http\Exceptions\ValidationException::getValidator
      */
-    public function testConstruct()
+    public function testConstruct(): void
     {
         /** @var Validator|MockObject $validator */
         $validator = $this->createMock(Validator::class);

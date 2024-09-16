@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Http;
 
 use Engelsystem\Config\Config;
@@ -20,7 +22,7 @@ class SessionServiceProviderTest extends ServiceProviderTest
      * @covers \Engelsystem\Http\SessionServiceProvider::getSessionStorage()
      * @covers \Engelsystem\Http\SessionServiceProvider::register()
      */
-    public function testRegister()
+    public function testRegister(): void
     {
         $app = $this->getApp(['make', 'instance', 'bind', 'get']);
 
@@ -40,7 +42,9 @@ class SessionServiceProviderTest extends ServiceProviderTest
             ->getMock();
 
         /** @var Config|MockObject $config */
-        $config = $this->createMock(Config::class);
+        $config = new Config([
+            'session' => ['driver' => 'native', 'name' => 'session', 'lifetime' => 2],
+        ]);
 
         $serviceProvider->expects($this->exactly(3))
             ->method('isCli')
@@ -53,13 +57,21 @@ class SessionServiceProviderTest extends ServiceProviderTest
                 [Session::class],
                 [
                     NativeSessionStorage::class,
-                    ['options' => ['cookie_httponly' => true, 'name' => 'session'], 'handler' => null],
+                    [
+                        // 2 days
+                        'options' => ['cookie_httponly' => true, 'name' => 'session', 'cookie_lifetime' => 172800],
+                        'handler' => null,
+                    ],
                 ],
                 [Session::class],
                 [DatabaseHandler::class],
                 [
                     NativeSessionStorage::class,
-                    ['options' => ['cookie_httponly' => true, 'name' => 'foobar'], 'handler' => $databaseHandler],
+                    [
+                        // 5 days
+                        'options' => ['cookie_httponly' => true, 'name' => 'foobar', 'cookie_lifetime' => 432000],
+                        'handler' => $databaseHandler,
+                    ],
                 ],
                 [Session::class]
             )
@@ -97,14 +109,6 @@ class SessionServiceProviderTest extends ServiceProviderTest
                 $request
             );
 
-        $config->expects($this->exactly(2))
-            ->method('get')
-            ->with('session')
-            ->willReturnOnConsecutiveCalls(
-                ['driver' => 'native', 'name' => 'session'],
-                ['driver' => 'pdo', 'name' => 'foobar']
-            );
-
         $app->expects($this->atLeastOnce())
             ->method('bind')
             ->withConsecutive(
@@ -118,14 +122,15 @@ class SessionServiceProviderTest extends ServiceProviderTest
         $this->setExpects($session, 'start', null, null, $this->atLeastOnce());
 
         $serviceProvider->register();
-        $serviceProvider->register();
-        $serviceProvider->register();
+        $serviceProvider->register(); // native handler
+        $config->set('session', ['driver' => 'pdo', 'name' => 'foobar', 'lifetime' => 5]);
+        $serviceProvider->register(); // pdo handler
     }
 
     /**
      * @covers \Engelsystem\Http\SessionServiceProvider::isCli()
      */
-    public function testIsCli()
+    public function testIsCli(): void
     {
         $app = $this->getApp(['make', 'instance', 'bind', 'get']);
 
@@ -167,10 +172,7 @@ class SessionServiceProviderTest extends ServiceProviderTest
         $serviceProvider->register();
     }
 
-    /**
-     * @return MockObject
-     */
-    private function getSessionMock()
+    private function getSessionMock(): MockObject
     {
         $sessionStorage = $this->getMockForAbstractClass(StorageInterface::class);
         return $this->getMockBuilder(Session::class)
@@ -179,10 +181,7 @@ class SessionServiceProviderTest extends ServiceProviderTest
             ->getMock();
     }
 
-    /**
-     * @return MockObject
-     */
-    private function getRequestMock()
+    private function getRequestMock(): MockObject
     {
         return $this->getMockBuilder(Request::class)
             ->onlyMethods(['setSession'])

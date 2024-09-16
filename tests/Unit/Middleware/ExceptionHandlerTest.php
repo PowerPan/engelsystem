@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Middleware;
 
 use Engelsystem\Application;
@@ -20,7 +22,7 @@ class ExceptionHandlerTest extends TestCase
      * @covers \Engelsystem\Middleware\ExceptionHandler::__construct
      * @covers \Engelsystem\Middleware\ExceptionHandler::process
      */
-    public function testRegister()
+    public function testRegister(): void
     {
         /** @var ContainerInterface|MockObject $container */
         $container = $this->getMockForAbstractClass(ContainerInterface::class);

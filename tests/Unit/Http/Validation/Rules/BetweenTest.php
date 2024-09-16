@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Http\Validation\Rules;
 
 use Engelsystem\Http\Validation\Rules\Between;
@@ -10,7 +12,7 @@ class BetweenTest extends TestCase
     /**
      * @covers \Engelsystem\Http\Validation\Rules\Between
      */
-    public function testValidate()
+    public function testValidate(): void
     {
         $rule = new Between(3, 10);
         $this->assertFalse($rule->validate(1));

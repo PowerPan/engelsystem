@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Http;
 
 use Engelsystem\Container\ServiceProvider;
@@ -15,7 +17,7 @@ use Symfony\Bridge\PsrHttpMessage\HttpMessageFactoryInterface;
 
 class Psr7ServiceProvider extends ServiceProvider
 {
-    public function register()
+    public function register(): void
     {
         $psr17Factory = Psr17Factory::class;
 

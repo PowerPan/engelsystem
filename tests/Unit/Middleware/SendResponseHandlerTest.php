@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Middleware;
 
 use Engelsystem\Middleware\SendResponseHandler;
@@ -14,7 +16,7 @@ class SendResponseHandlerTest extends TestCase
     /**
      * @covers \Engelsystem\Middleware\SendResponseHandler::process
      */
-    public function testRegister()
+    public function testRegister(): void
     {
         /** @var SendResponseHandler|MockObject $middleware */
         $middleware = $this->getMockBuilder(SendResponseHandler::class)

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Models;
 
 use Carbon\Carbon;
@@ -10,7 +12,7 @@ class EventConfigTest extends ModelTest
     /**
      * @covers \Engelsystem\Models\EventConfig::setValueAttribute
      */
-    public function testSetValueAttribute()
+    public function testSetValueAttribute(): void
     {
         (new EventConfig())
             ->setAttribute('name', 'foo')
@@ -50,7 +52,7 @@ class EventConfigTest extends ModelTest
     /**
      * @covers \Engelsystem\Models\EventConfig::getValueAttribute
      */
-    public function testGetValueAttribute()
+    public function testGetValueAttribute(): void
     {
         $model = new EventConfig(['name', 'buildup_start', 'value' => '']);
         $this->assertEquals('', $model->value);
@@ -87,9 +89,9 @@ class EventConfigTest extends ModelTest
     /**
      * @covers \Engelsystem\Models\EventConfig::getValueCast
      */
-    public function testGetValueCast()
+    public function testGetValueCast(): void
     {
-        $model = new EventConfig(['value' => 'bar']);
+        $model = new EventConfig(['name' => 'foo', 'value' => 'bar']);
         $this->assertEquals('bar', $model->value);
 
         return;
@@ -97,19 +99,12 @@ class EventConfigTest extends ModelTest
 
     /**
      * Init a new EventConfig class
-     *
-     * @return EventConfig
      */
-    protected function getEventConfig()
+    protected function getEventConfig(): EventConfig
     {
         return new class extends EventConfig
         {
-            /**
-             * @param string $value
-             * @param string $type
-             * @return EventConfig
-             */
-            public function setValueCast($value, $type)
+            public function setValueCast(string $value, string $type): EventConfig
             {
                 $this->valueCasts[$value] = $type;
 

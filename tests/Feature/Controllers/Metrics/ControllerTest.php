@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Feature\Controllers\Metrics;
 
 use Engelsystem\Controllers\Metrics\Controller;
@@ -10,7 +12,7 @@ class ControllerTest extends ApplicationFeatureTest
     /**
      * @covers \Engelsystem\Controllers\Metrics\Controller::metrics
      */
-    public function testMetrics()
+    public function testMetrics(): void
     {
         config([
             'api_key' => null,

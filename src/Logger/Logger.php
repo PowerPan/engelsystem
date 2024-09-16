@@ -1,16 +1,20 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Logger;
 
 use Engelsystem\Models\LogEntry;
 use Psr\Log\AbstractLogger;
 use Psr\Log\InvalidArgumentException;
 use Psr\Log\LogLevel;
+use Stringable;
 use Throwable;
 
 class Logger extends AbstractLogger
 {
-    protected $allowedLevels = [
+    /** @var array<string> */
+    protected array $allowedLevels = [
         LogLevel::ALERT,
         LogLevel::CRITICAL,
         LogLevel::DEBUG,
@@ -21,27 +25,14 @@ class Logger extends AbstractLogger
         LogLevel::WARNING,
     ];
 
-    /** @var LogEntry */
-    protected $log;
-
-    /**
-     * @param LogEntry $log
-     */
-    public function __construct(LogEntry $log)
+    public function __construct(protected LogEntry $log)
     {
-        $this->log = $log;
     }
 
     /**
      * Logs with an arbitrary level.
-     *
-     * @param mixed  $level
-     * @param string $message
-     * @param array  $context
-     *
-     * @throws InvalidArgumentException
      */
-    public function log($level, $message, array $context = []): void
+    public function log(mixed $level, string|Stringable $message, array $context = []): void
     {
         if (!$this->checkLevel($level)) {
             throw new InvalidArgumentException('Unknown log level: ' . $level);
@@ -58,12 +49,8 @@ class Logger extends AbstractLogger
 
     /**
      * Interpolates context values into the message placeholders.
-     *
-     * @param string $message
-     * @param array  $context
-     * @return string
      */
-    protected function interpolate($message, array $context = []): string
+    protected function interpolate(string $message, array $context = []): string
     {
         foreach ($context as $key => $val) {
             // check that the value can be casted to string
@@ -72,16 +59,12 @@ class Logger extends AbstractLogger
             }
 
             // replace the values of the message
-            $message = str_replace('{' . $key . '}', (string)$val, $message);
+            $message = str_replace('{' . $key . '}', (string) $val, $message);
         }
 
         return $message;
     }
 
-    /**
-     * @param Throwable $e
-     * @return string
-     */
     protected function formatException(Throwable $e): string
     {
         return sprintf(
@@ -94,11 +77,7 @@ class Logger extends AbstractLogger
         );
     }
 
-    /**
-     * @param string $level
-     * @return bool
-     */
-    protected function checkLevel($level): bool
+    protected function checkLevel(string $level): bool
     {
         return in_array($level, $this->allowedLevels);
     }

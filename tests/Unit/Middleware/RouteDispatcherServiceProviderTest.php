@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Middleware;
 
 use Engelsystem\Config\Config;
@@ -17,7 +19,7 @@ class RouteDispatcherServiceProviderTest extends ServiceProviderTest
     /**
      * @covers \Engelsystem\Middleware\RouteDispatcherServiceProvider::register()
      */
-    public function testRegister()
+    public function testRegister(): void
     {
         /** @var ContextualBindingBuilder|MockObject $bindingBuilder */
         $bindingBuilder = $this->createMock(ContextualBindingBuilder::class);

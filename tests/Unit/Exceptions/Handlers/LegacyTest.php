@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Exceptions\Handlers;
 
 use Engelsystem\Exceptions\Handlers\Legacy;
@@ -15,7 +17,7 @@ class LegacyTest extends TestCase
     /**
      * @covers \Engelsystem\Exceptions\Handlers\Legacy::render
      */
-    public function testRender()
+    public function testRender(): void
     {
         $handler = new Legacy();
         /** @var Request|MockObject $request */
@@ -33,7 +35,7 @@ class LegacyTest extends TestCase
      * @covers \Engelsystem\Exceptions\Handlers\Legacy::setLogger
      * @covers \Engelsystem\Exceptions\Handlers\Legacy::stripBasePath
      */
-    public function testReport()
+    public function testReport(): void
     {
         $handler = new Legacy();
         $exception = new Exception('Lorem Ipsum', 4242);
@@ -44,7 +46,7 @@ class LegacyTest extends TestCase
         $logger2 = $this->createMock(TestLogger::class);
         $logger2->expects($this->once())
             ->method('critical')
-            ->willReturnCallback(function () {
+            ->willReturnCallback(function (): void {
                 throw new ErrorException();
             });
 
@@ -63,7 +65,7 @@ class LegacyTest extends TestCase
         $this->assertStringContainsString('4242', $logContent);
         $this->assertStringContainsString('Lorem Ipsum', $logContent);
         $this->assertStringContainsString(basename(__FILE__), $logContent);
-        $this->assertStringContainsString((string)$line, $logContent);
+        $this->assertStringContainsString((string) $line, $logContent);
         $this->assertStringContainsString(__FUNCTION__, $logContent);
         $this->assertStringContainsString(json_encode(__CLASS__), $logContent);
         $this->assertStringContainsString('Test Exception', $logContent);

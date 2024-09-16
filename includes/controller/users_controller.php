@@ -1,6 +1,7 @@
 <?php
 
 use Engelsystem\Database\Db;
+use Engelsystem\Models\Shifts\ShiftEntry;
 use Engelsystem\Models\User\State;
 use Engelsystem\Models\User\User;
 use Engelsystem\ShiftCalendarRenderer;
@@ -27,17 +28,13 @@ function users_controller()
         $action = $request->input('action');
     }
 
-    switch ($action) {
-        case 'view':
-            return user_controller();
-        case 'delete':
-            return user_delete_controller();
-        case 'edit_vouchers':
-            return user_edit_vouchers_controller();
-        case 'list':
-        default:
-            return users_list_controller();
-    }
+    return match ($action) {
+        'view'          => user_controller(),
+        'delete'        => user_delete_controller(),
+        'edit_vouchers' => user_edit_vouchers_controller(),
+        'list'          => users_list_controller(),
+        default         => users_list_controller(),
+    };
 }
 
 /**
@@ -70,10 +67,12 @@ function user_delete_controller()
     if ($request->hasPostData('submit')) {
         $valid = true;
 
-        if (!(
+        if (
+            !(
             $request->has('password')
             && $auth->verifyPassword($user, $request->postData('password'))
-        )) {
+            )
+        ) {
             $valid = false;
             error(__('auth.password.error'));
         }
@@ -92,8 +91,8 @@ function user_delete_controller()
     }
 
     return [
-        sprintf(__('Delete %s'), $user_source->name),
-        User_delete_view($user_source)
+        sprintf(__('Delete %s'), $user_source->displayName),
+        User_delete_view($user_source),
     ];
 }
 
@@ -173,16 +172,18 @@ function user_edit_vouchers_controller()
             $user_source->state->save();
 
             success(__('Saved the number of vouchers.'));
-            engelsystem_log(User_Nick_render($user_source, true) . ': ' . sprintf('Got %s vouchers',
-                    $user_source->state->got_voucher));
+            engelsystem_log(User_Nick_render($user_source, true) . ': ' . sprintf(
+                'Got %s vouchers',
+                $user_source->state->got_voucher
+            ));
 
             throw_redirect(user_link($user_source->id));
         }
     }
 
     return [
-        sprintf(__('%s\'s vouchers'), $user_source->name),
-        User_edit_vouchers_view($user_source)
+        sprintf(__('%s\'s vouchers'), $user_source->displayName),
+        User_edit_vouchers_view($user_source),
     ];
 }
 
@@ -204,28 +205,32 @@ function user_controller()
     }
 
     $shifts = Shifts_by_user($user_source->id, auth()->can('user_shifts_admin'));
-    foreach ($shifts as &$shift) {
+    foreach ($shifts as $shift) {
         // TODO: Move queries to model
-        $shift['needed_angeltypes'] = Db::select('
-            SELECT DISTINCT `AngelTypes`.*
-            FROM `ShiftEntry`
-            JOIN `AngelTypes` ON `ShiftEntry`.`TID`=`AngelTypes`.`id`
-            WHERE `ShiftEntry`.`SID` = ?
-            ORDER BY `AngelTypes`.`name`
+        $shift->needed_angeltypes = Db::select(
+            '
+            SELECT DISTINCT `angel_types`.*
+            FROM `shift_entries`
+            JOIN `angel_types` ON `shift_entries`.`angel_type_id`=`angel_types`.`id`
+            WHERE `shift_entries`.`shift_id` = ?
+            ORDER BY `angel_types`.`name`
             ',
-            [$shift['SID']]
+            [$shift->id]
         );
-        foreach ($shift['needed_angeltypes'] as &$needed_angeltype) {
-            $needed_angeltype['users'] = Db::select('
-                    SELECT `ShiftEntry`.`freeloaded`, `users`.*
-                    FROM `ShiftEntry`
-                    JOIN `users` ON `ShiftEntry`.`UID`=`users`.`id`
-                    WHERE `ShiftEntry`.`SID` = ?
-                    AND `ShiftEntry`.`TID` = ?
+        $neededAngeltypes = $shift->needed_angeltypes;
+        foreach ($neededAngeltypes as &$needed_angeltype) {
+            $needed_angeltype['users'] = Db::select(
+                '
+                    SELECT `shift_entries`.`freeloaded`, `users`.*
+                    FROM `shift_entries`
+                    JOIN `users` ON `shift_entries`.`user_id`=`users`.`id`
+                    WHERE `shift_entries`.`shift_id` = ?
+                    AND `shift_entries`.`angel_type_id` = ?
                 ',
-                [$shift['SID'], $needed_angeltype['id']]
+                [$shift->id, $needed_angeltype['id']]
             );
         }
+        $shift->needed_angeltypes = $neededAngeltypes;
     }
 
     if (empty($user_source->api_key)) {
@@ -239,20 +244,20 @@ function user_controller()
     }
 
     return [
-        $user_source->name,
+        $user_source->displayName,
         User_view(
             $user_source,
             auth()->can('admin_user'),
-            User_is_freeloader($user_source),
-            User_angeltypes($user_source->id),
-            User_groups($user_source->id),
+            $user_source->isFreeloader(),
+            $user_source->userAngelTypes,
+            $user_source->groups,
             $shifts,
             $user->id == $user_source->id,
             $tshirt_score,
             auth()->can('admin_active'),
             auth()->can('admin_user_worklog'),
             UserWorkLogsForUser($user_source->id)
-        )
+        ),
     ];
 }
 
@@ -270,7 +275,8 @@ function users_list_controller()
     }
 
     $order_by = 'name';
-    if ($request->has('OrderBy') && in_array($request->input('OrderBy'), [
+    if (
+        $request->has('OrderBy') && in_array($request->input('OrderBy'), [
             'name',
             'first_name',
             'last_name',
@@ -285,7 +291,8 @@ function users_list_controller()
             'planned_arrival_date',
             'planned_departure_date',
             'last_login_at',
-        ])) {
+        ])
+    ) {
         $order_by = $request->input('OrderBy');
     }
 
@@ -294,7 +301,12 @@ function users_list_controller()
         ->orderBy('name')
         ->get();
     foreach ($users as $user) {
-        $user->setAttribute('freeloads', count(ShiftEntries_freeloaded_by_user($user->id)));
+        $user->setAttribute(
+            'freeloads',
+            $user->shiftEntries()
+                ->where('freeloaded', true)
+                ->count()
+        );
     }
 
     $users = $users->sortBy(function (User $user) use ($order_by) {
@@ -315,10 +327,10 @@ function users_list_controller()
             State::whereArrived(true)->count(),
             State::whereActive(true)->count(),
             State::whereForceActive(true)->count(),
-            ShiftEntries_freeloaded_count(),
+            ShiftEntry::whereFreeloaded(true)->count(),
             State::whereGotShirt(true)->count(),
             State::query()->sum('got_voucher')
-        )
+        ),
     ];
 }
 
@@ -354,21 +366,22 @@ function shiftCalendarRendererByShiftFilter(ShiftsFilter $shiftsFilter)
     $shift_entries_source = ShiftEntries_by_ShiftsFilter($shiftsFilter);
 
     $needed_angeltypes = [];
+    /** @var ShiftEntry[][] $shift_entries */
     $shift_entries = [];
     foreach ($shifts as $shift) {
-        $needed_angeltypes[$shift['SID']] = [];
-        $shift_entries[$shift['SID']] = [];
+        $needed_angeltypes[$shift->id] = [];
+        $shift_entries[$shift->id] = [];
     }
 
     foreach ($shift_entries_source as $shift_entry) {
-        if (isset($shift_entries[$shift_entry['SID']])) {
-            $shift_entries[$shift_entry['SID']][] = $shift_entry;
+        if (isset($shift_entries[$shift_entry->shift_id])) {
+            $shift_entries[$shift_entry->shift_id][] = $shift_entry;
         }
     }
 
     foreach ($needed_angeltypes_source as $needed_angeltype) {
-        if (isset($needed_angeltypes[$needed_angeltype['SID']])) {
-            $needed_angeltypes[$needed_angeltype['SID']][] = $needed_angeltype;
+        if (isset($needed_angeltypes[$needed_angeltype['shift_id']])) {
+            $needed_angeltypes[$needed_angeltype['shift_id']][] = $needed_angeltype;
         }
     }
 
@@ -385,7 +398,7 @@ function shiftCalendarRendererByShiftFilter(ShiftsFilter $shiftsFilter)
     $filtered_shifts = [];
     foreach ($shifts as $shift) {
         $needed_angels_count = 0;
-        foreach ($needed_angeltypes[$shift['SID']] as $needed_angeltype) {
+        foreach ($needed_angeltypes[$shift->id] as $needed_angeltype) {
             $taken = 0;
 
             if (
@@ -395,10 +408,10 @@ function shiftCalendarRendererByShiftFilter(ShiftsFilter $shiftsFilter)
                 continue;
             }
 
-            foreach ($shift_entries[$shift['SID']] as $shift_entry) {
+            foreach ($shift_entries[$shift->id] as $shift_entry) {
                 if (
-                    $needed_angeltype['angel_type_id'] == $shift_entry['TID']
-                    && $shift_entry['freeloaded'] == 0
+                    $needed_angeltype['angel_type_id'] == $shift_entry->angel_type_id
+                    && !$shift_entry->freeloaded
                 ) {
                     $taken++;
                 }

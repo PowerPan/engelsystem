@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Middleware;
 
 use Engelsystem\Middleware\RequestHandler;
@@ -12,7 +14,7 @@ class RequestHandlerServiceProviderTest extends ServiceProviderTest
     /**
      * @covers \Engelsystem\Middleware\RequestHandlerServiceProvider::register()
      */
-    public function testRegister()
+    public function testRegister(): void
     {
         /** @var RequestHandler|MockObject $requestHandler */
         $requestHandler = $this->createMock(RequestHandler::class);

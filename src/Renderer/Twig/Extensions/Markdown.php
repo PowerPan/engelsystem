@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Renderer\Twig\Extensions;
 
 use Parsedown;
@@ -8,20 +10,10 @@ use Twig\TwigFilter;
 
 class Markdown extends TwigExtension
 {
-    /** @var Parsedown */
-    protected $renderer;
-
-    /**
-     * @param Parsedown $renderer
-     */
-    public function __construct(Parsedown $renderer)
+    public function __construct(protected Parsedown $renderer)
     {
-        $this->renderer = $renderer;
     }
 
-    /**
-     * @return array
-     */
     public function getFilters(): array
     {
         $options = ['is_safe' => ['html']];
@@ -32,12 +24,6 @@ class Markdown extends TwigExtension
         ];
     }
 
-    /**
-     * @param string $text
-     * @param bool   $escapeHtml
-     *
-     * @return string
-     */
     public function render(string $text, bool $escapeHtml = true): string
     {
         return $this->renderer->setSafeMode($escapeHtml)->text($text);

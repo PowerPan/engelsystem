@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Helpers\Schedule;
 
 use Carbon\Carbon;
@@ -17,7 +19,7 @@ class DayTest extends TestCase
      * @covers \Engelsystem\Helpers\Schedule\Day::getIndex
      * @covers \Engelsystem\Helpers\Schedule\Day::getRoom
      */
-    public function testCreate()
+    public function testCreate(): void
     {
         $day = new Day(
             '2000-01-01',

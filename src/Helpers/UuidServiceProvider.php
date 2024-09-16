@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Helpers;
 
 use Engelsystem\Container\ServiceProvider;
@@ -10,25 +12,8 @@ class UuidServiceProvider extends ServiceProvider
     /**
      * Register the UUID generator to the Str class
      */
-    public function register()
+    public function register(): void
     {
-        Str::createUuidsUsing([$this, 'uuid']);
-    }
-
-    /**
-     * Generate a v4 UUID
-     */
-    public function uuid(): string
-    {
-        return sprintf(
-            '%08x-%04x-%04x-%04x-%012x',
-            mt_rand(0, 0xffffffff),
-            mt_rand(0, 0xffff),
-            // first bit is the uuid version, here 4
-            mt_rand(0, 0x0fff) | 0x4000,
-            // variant
-            mt_rand(0, 0x3fff) | 0x8000,
-            mt_rand(0, 0xffffffffffff)
-        );
+        Str::createUuidsUsing(Uuid::class . '::uuid');
     }
 }

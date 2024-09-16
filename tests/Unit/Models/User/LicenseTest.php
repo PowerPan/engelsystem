@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Models\User;
 
 use Engelsystem\Models\User\License;
@@ -10,7 +12,7 @@ class LicenseTest extends ModelTest
     /**
      * @covers \Engelsystem\Models\User\License::wantsToDrive
      */
-    public function testWantsToDrive()
+    public function testWantsToDrive(): void
     {
         $license = new License();
         $this->assertFalse($license->wantsToDrive());

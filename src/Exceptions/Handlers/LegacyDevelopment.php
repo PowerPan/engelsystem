@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Exceptions\Handlers;
 
 use Engelsystem\Http\Request;
@@ -7,11 +9,7 @@ use Throwable;
 
 class LegacyDevelopment extends Legacy
 {
-    /**
-     * @param Request   $request
-     * @param Throwable $e
-     */
-    public function render($request, Throwable $e)
+    public function render(Request $request, Throwable $e): void
     {
         $file = $this->stripBasePath($e->getFile());
 
@@ -36,11 +34,7 @@ class LegacyDevelopment extends Legacy
         echo '</pre>';
     }
 
-    /**
-     * @param array $stackTrace
-     * @return array
-     */
-    protected function formatStackTrace($stackTrace)
+    protected function formatStackTrace(array $stackTrace): array
     {
         $return = [];
         $stackTrace = array_reverse($stackTrace);
@@ -58,34 +52,26 @@ class LegacyDevelopment extends Legacy
 
             $args = [];
             foreach (($trace['args'] ?? []) as $arg) {
-                // @codeCoverageIgnoreStart
-                switch (gettype($arg)) {
-                    case 'string':
-                    case 'integer':
-                    case 'double':
-                        $args[] = $arg;
-                        break;
-                    case 'boolean':
-                        $args[] = $arg ? 'true' : 'false';
-                        break;
-                    case 'object':
-                        $args[] = get_class($arg);
-                        break;
-                    case 'resource':
-                        $args[] = get_resource_type($arg);
-                        break;
-                    default:
-                        $args[] = gettype($arg);
-                    // @codeCoverageIgnoreEnd
-                }
+                $args[] = $this->getDisplayNameOfValue($arg);
             }
 
             $return[] = [
                 'file'        => $path . ':' . $line,
-                $functionName => $args ?? null,
+                $functionName => $args,
             ];
         }
 
         return $return;
+    }
+
+    private function getDisplayNameOfValue(mixed $arg): string
+    {
+        return match (gettype($arg)) {
+            'string', 'integer', 'double' => (string) $arg,
+            'boolean'  => $arg ? 'true' : 'false',
+            'object'   => get_class($arg),
+            'resource' => get_resource_type($arg), // @codeCoverageIgnore
+            default    => gettype($arg),
+        };
     }
 }

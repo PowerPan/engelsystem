@@ -1,12 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Helpers;
 
 use Engelsystem\Container\ServiceProvider;
 
 class AssetsServiceProvider extends ServiceProvider
 {
-    public function register()
+    public function register(): void
     {
         $this->app->when(Assets::class)
             ->needs('$assetsPath')

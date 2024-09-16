@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Middleware;
 
 use Engelsystem\Http\Exceptions\HttpAuthExpired;
@@ -17,7 +19,7 @@ class VerifyCsrfTokenTest extends TestCase
      * @covers \Engelsystem\Middleware\VerifyCsrfToken::isReading
      * @covers \Engelsystem\Middleware\VerifyCsrfToken::process
      */
-    public function testProcess()
+    public function testProcess(): void
     {
         /** @var ServerRequestInterface|MockObject $request */
         $request = $this->getMockForAbstractClass(ServerRequestInterface::class);
@@ -60,7 +62,7 @@ class VerifyCsrfTokenTest extends TestCase
      * @covers \Engelsystem\Middleware\VerifyCsrfToken::__construct
      * @covers \Engelsystem\Middleware\VerifyCsrfToken::tokensMatch
      */
-    public function testTokensMatch()
+    public function testTokensMatch(): void
     {
         /** @var ServerRequestInterface|MockObject $request */
         $request = $this->getMockForAbstractClass(ServerRequestInterface::class);

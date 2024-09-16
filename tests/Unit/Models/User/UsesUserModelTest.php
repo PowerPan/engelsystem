@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Models\User;
 
 use Engelsystem\Models\BaseModel;
@@ -12,7 +14,7 @@ class UsesUserModelTest extends ModelTest
     /**
      * @covers \Engelsystem\Models\User\UsesUserModel::user
      */
-    public function testHasOneRelations()
+    public function testHasOneRelations(): void
     {
         /** @var UsesUserModel $contact */
         $model = new class extends BaseModel

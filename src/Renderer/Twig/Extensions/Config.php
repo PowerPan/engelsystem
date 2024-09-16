@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Renderer\Twig\Extensions;
 
 use Engelsystem\Config\Config as EngelsystemConfig;
@@ -8,15 +10,8 @@ use Twig\TwigFunction;
 
 class Config extends TwigExtension
 {
-    /** @var EngelsystemConfig */
-    protected $config;
-
-    /**
-     * @param EngelsystemConfig $config
-     */
-    public function __construct(EngelsystemConfig $config)
+    public function __construct(protected EngelsystemConfig $config)
     {
-        $this->config = $config;
     }
 
     /**

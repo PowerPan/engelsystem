@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Mail;
 
 use Symfony\Component\Mailer\MailerInterface;
@@ -7,31 +9,23 @@ use Symfony\Component\Mime\Email;
 
 class Mailer
 {
-    /** @var MailerInterface */
-    protected $mailer;
+    protected string $fromAddress = '';
 
-    /** @var string */
-    protected $fromAddress = '';
+    protected ?string $fromName = null;
 
-    /** @var string */
-    protected $fromName = null;
-
-    public function __construct(MailerInterface $mailer)
+    public function __construct(protected MailerInterface $mailer)
     {
-        $this->mailer = $mailer;
     }
 
     /**
      * Send the mail
      *
      * @param string|string[] $to
-     * @param string          $subject
-     * @param string          $body
      */
-    public function send($to, string $subject, string $body): void
+    public function send(string|array $to, string $subject, string $body): void
     {
         $message = (new Email())
-            ->to(...(array)$to)
+            ->to(...(array) $to)
             ->from(sprintf('%s <%s>', $this->fromName, $this->fromAddress))
             ->subject($subject)
             ->text($body);
@@ -39,34 +33,22 @@ class Mailer
         $this->mailer->send($message);
     }
 
-    /**
-     * @return string
-     */
     public function getFromAddress(): string
     {
         return $this->fromAddress;
     }
 
-    /**
-     * @param string $fromAddress
-     */
-    public function setFromAddress(string $fromAddress)
+    public function setFromAddress(string $fromAddress): void
     {
         $this->fromAddress = $fromAddress;
     }
 
-    /**
-     * @return string
-     */
     public function getFromName(): string
     {
         return $this->fromName;
     }
 
-    /**
-     * @param string $fromName
-     */
-    public function setFromName(string $fromName)
+    public function setFromName(string $fromName): void
     {
         $this->fromName = $fromName;
     }

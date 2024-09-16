@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit;
 
 use Engelsystem\Application;
@@ -13,18 +15,15 @@ use PHPUnit\Framework\TestCase as PHPUnitTestCase;
 
 abstract class TestCase extends PHPUnitTestCase
 {
-    /** @var Application */
-    protected $app;
+    protected Application $app;
 
-    /**
-     * @param MockObject      $object
-     * @param string          $method
-     * @param array           $arguments
-     * @param mixed           $return
-     * @param InvocationOrder $times
-     */
-    protected function setExpects($object, $method, $arguments = null, $return = null, $times = null)
-    {
+    protected function setExpects(
+        MockObject $object,
+        string $method,
+        array $arguments = null,
+        mixed $return = null,
+        InvocationOrder|int $times = null
+    ): void {
         if (is_null($times)) {
             $times = $this->once();
         }
@@ -60,7 +59,6 @@ abstract class TestCase extends PHPUnitTestCase
     }
 
     /**
-     * @param bool $mockImplementation
      * @return Translator&MockObject
      */
     protected function mockTranslator(bool $mockImplementation = true): Translator

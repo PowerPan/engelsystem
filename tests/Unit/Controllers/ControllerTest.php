@@ -1,8 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Controllers;
 
 use Engelsystem\Config\Config;
+use Engelsystem\Controllers\NotificationType;
 use Engelsystem\Http\Request;
 use Engelsystem\Http\Response;
 use Engelsystem\Http\UrlGenerator;
@@ -20,29 +23,37 @@ abstract class ControllerTest extends TestCase
 {
     use HasDatabase;
 
-    /** @var Config */
-    protected $config;
+    protected Config $config;
 
-    /** @var TestLogger */
-    protected $log;
+    protected TestLogger $log;
 
-    /** @var Response|MockObject */
-    protected $response;
+    protected Response|MockObject $response;
 
-    /** @var Request */
-    protected $request;
+    protected Request $request;
 
-    /** @var Session */
-    protected $session;
+    protected Session $session;
 
     /**
-     * @param string      $value
-     * @param string|null $message
+     * @param string|string[] $value
      */
-    protected function assertHasNotification(string $value, string $message = null)
+    protected function setNotification(string|array $value, NotificationType $type = NotificationType::MESSAGE): void
     {
-        $messages = $this->session->get('messages', []);
-        $this->assertTrue(in_array($value, $messages), $message ?: 'Session does not contain message "' . $value . '"');
+        $this->session->set(
+            'messages.' . $type->value,
+            array_merge($this->session->get('messages.' . $type->value, []), (array) $value)
+        );
+    }
+
+    protected function assertHasNotification(string $value, NotificationType $type = NotificationType::MESSAGE): void
+    {
+        $messages = $this->session->get('messages.' . $type->value, []);
+        $this->assertTrue(in_array($value, $messages), 'Has ' . $type->value . ' notification: ' . $value);
+    }
+
+    protected function assertHasNoNotifications(NotificationType $type = null): void
+    {
+        $messages = $this->session->get('messages' . ($type ? '.' . $type->value : ''), []);
+        $this->assertEmpty($messages, 'Has no' . ($type ? ' ' . $type->value : '') . ' notification.');
     }
 
     /**

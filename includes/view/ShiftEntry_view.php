@@ -1,32 +1,34 @@
 <?php
 
+use Engelsystem\Models\AngelType;
 use Engelsystem\Models\Room;
+use Engelsystem\Models\Shifts\Shift;
 use Engelsystem\Models\User\User;
 
 /**
- * Sign off from an user from a shift with admin permissions, asking for ack.
+ * Sign off from a user from a shift with admin permissions, asking for ack.
  *
- * @param array $shift
- * @param array $angeltype
+ * @param Shift $shift
+ * @param AngelType $angeltype
  * @param User  $signoff_user
  *
  * @return string HTML
  */
-function ShiftEntry_delete_view_admin($shift, $angeltype, $signoff_user)
+function ShiftEntry_delete_view_admin(Shift $shift, AngelType $angeltype, User $signoff_user)
 {
     return page_with_title(ShiftEntry_delete_title(), [
         info(sprintf(
             __('Do you want to sign off %s from shift %s from %s to %s as %s?'),
             User_Nick_render($signoff_user),
-            $shift['name'],
-            date('Y-m-d H:i', $shift['start']),
-            date('Y-m-d H:i', $shift['end']),
-            $angeltype['name']
+            $shift->shiftType->name,
+            $shift->start->format(__('Y-m-d H:i')),
+            $shift->end->format(__('Y-m-d H:i')),
+            $angeltype->name
         ), true),
         form([
             buttons([
                 button(user_link($signoff_user->id), icon('x-lg') . __('cancel')),
-                form_submit('delete', icon('trash') . __('delete'), 'btn-danger', false)
+                form_submit('delete', icon('trash') . __('sign off'), 'btn-danger', false),
             ]),
         ]),
     ]);
@@ -35,26 +37,26 @@ function ShiftEntry_delete_view_admin($shift, $angeltype, $signoff_user)
 /**
  * Sign off from a shift, asking for ack.
  *
- * @param array $shift
- * @param array $angeltype
- * @param int   $signoff_user_id
+ * @param Shift $shift
+ * @param AngelType $angeltype
+ * @param User $signoff_user
  *
  * @return string HTML
  */
-function ShiftEntry_delete_view($shift, $angeltype, $signoff_user_id)
+function ShiftEntry_delete_view(Shift $shift, AngelType $angeltype, User $signoff_user)
 {
     return page_with_title(ShiftEntry_delete_title(), [
         info(sprintf(
             __('Do you want to sign off from your shift %s from %s to %s as %s?'),
-            $shift['name'],
-            date('Y-m-d H:i', $shift['start']),
-            date('Y-m-d H:i', $shift['end']),
-            $angeltype['name']
+            $shift->shiftType->name,
+            $shift->start->format(__('Y-m-d H:i')),
+            $shift->end->format(__('Y-m-d H:i')),
+            $angeltype->name
         ), true),
 
         form([
             buttons([
-                button(user_link($signoff_user_id), icon('x-lg') . __('cancel')),
+                button(user_link($signoff_user->id), icon('x-lg') . __('cancel')),
                 form_submit('delete', icon('trash') . __('delete'), 'btn-danger', false),
             ]),
         ]),
@@ -72,76 +74,92 @@ function ShiftEntry_delete_title()
 /**
  * Admin puts user into shift.
  *
- * @param array $shift
- * @param Room  $room
- * @param array $angeltype
- * @param array $angeltypes_select
- * @param User  $signup_user
- * @param array $users_select
+ * @param Shift     $shift
+ * @param Room      $room
+ * @param AngelType $angeltype
+ * @param array     $angeltypes_select
+ * @param User      $signup_user
+ * @param array     $users_select
  * @return string
  */
-function ShiftEntry_create_view_admin($shift, Room $room, $angeltype, $angeltypes_select, $signup_user, $users_select)
-{
+function ShiftEntry_create_view_admin(
+    Shift $shift,
+    Room $room,
+    AngelType $angeltype,
+    $angeltypes_select,
+    $signup_user,
+    $users_select
+) {
+    $start = $shift->start->format(__('Y-m-d H:i'));
     return page_with_title(
-        ShiftEntry_create_title() . ': ' . $shift['name']
-        . ' <small class="moment-countdown" data-timestamp="' . $shift['start'] . '">%c</small>',
+        ShiftEntry_create_title() . ': ' . $shift->shiftType->name
+        . ' <small title="' . $start . '" data-countdown-ts="' . $shift->start->timestamp . '">%c</small>',
         [
             Shift_view_header($shift, $room),
             info(__('Do you want to sign up the following user for this shift?'), true),
             form([
-                form_select('angeltype_id', __('Angeltype'), $angeltypes_select, $angeltype['id']),
+                form_select('angeltype_id', __('Angeltype'), $angeltypes_select, $angeltype->id),
                 form_select('user_id', __('User'), $users_select, $signup_user->id),
-                form_submit('submit', icon('check-lg') . __('Save'))
-            ])
-        ]);
+                form_submit('submit', icon('check-lg') . __('Save')),
+            ]),
+        ]
+    );
 }
 
 /**
  * Supporter puts user into shift.
  *
- * @param array $shift
+ * @param Shift $shift
  * @param Room  $room
- * @param array $angeltype
+ * @param AngelType $angeltype
  * @param User  $signup_user
  * @param array $users_select
  * @return string
  */
-function ShiftEntry_create_view_supporter($shift, Room $room, $angeltype, $signup_user, $users_select)
+function ShiftEntry_create_view_supporter(Shift $shift, Room $room, AngelType $angeltype, $signup_user, $users_select)
 {
-    return page_with_title(ShiftEntry_create_title() . ': ' . $shift['name']
-        . ' <small class="moment-countdown" data-timestamp="' . $shift['start'] . '">%c</small>',
+    $start = $shift->start->format(__('Y-m-d H:i'));
+    return page_with_title(
+        ShiftEntry_create_title() . ': ' . $shift->shiftType->name
+        . ' <small title="' . $start . '" data-countdown-ts="' . $shift->start->timestamp . '">%c</small>',
         [
             Shift_view_header($shift, $room),
-            info(sprintf(__('Do you want to sign up the following user for this shift as %s?'),
-                AngelType_name_render($angeltype)), true),
+            info(sprintf(
+                __('Do you want to sign up the following user for this shift as %s?'),
+                $angeltype->name
+            ), true),
             form([
                 form_select('user_id', __('User'), $users_select, $signup_user->id),
-                form_submit('submit', icon('check-lg') . __('Save'))
-            ])
-        ]);
+                form_submit('submit', icon('check-lg') . __('Save')),
+            ]),
+        ]
+    );
 }
 
 /**
  * User joining a shift.
  *
- * @param array  $shift
+ * @param Shift  $shift
  * @param Room   $room
- * @param array  $angeltype
+ * @param AngelType  $angeltype
  * @param string $comment
  * @return string
  */
-function ShiftEntry_create_view_user($shift, Room $room, $angeltype, $comment)
+function ShiftEntry_create_view_user(Shift $shift, Room $room, AngelType $angeltype, $comment)
 {
-    return page_with_title(ShiftEntry_create_title() . ': ' . $shift['name']
-        . ' <small class="moment-countdown" data-timestamp="' . $shift['start'] . '">%c</small>',
+    $start = $shift->start->format(__('Y-m-d H:i'));
+    return page_with_title(
+        ShiftEntry_create_title() . ': ' . $shift->shiftType->name
+        . ' <small title="' . $start . '" data-countdown-ts="' . $shift->start->timestamp . '">%c</small>',
         [
             Shift_view_header($shift, $room),
-            info(sprintf(__('Do you want to sign up for this shift as %s?'), AngelType_name_render($angeltype)), true),
+            info(sprintf(__('Do you want to sign up for this shift as %s?'), $angeltype->name), true),
             form([
                 form_textarea('comment', __('Comment (for your eyes only):'), $comment),
-                form_submit('submit', icon('check-lg') . __('Save'))
-            ])
-        ]);
+                form_submit('submit', icon('check-lg') . __('Save')),
+            ]),
+        ]
+    );
 }
 
 /**
@@ -162,7 +180,7 @@ function ShiftEntry_create_title()
  * @param string $type
  * @param string $comment
  * @param bool   $freeloaded
- * @param string $freeload_comment
+ * @param string $freeloaded_comment
  * @param bool   $user_admin_shifts
  * @return string
  */
@@ -174,7 +192,7 @@ function ShiftEntry_edit_view(
     $type,
     $comment,
     $freeloaded,
-    $freeload_comment,
+    $freeloaded_comment,
     $user_admin_shifts = false
 ) {
     $freeload_form = [];
@@ -182,10 +200,10 @@ function ShiftEntry_edit_view(
         $freeload_form = [
             form_checkbox('freeloaded', __('Freeloaded'), $freeloaded),
             form_textarea(
-                'freeload_comment',
+                'freeloaded_comment',
                 __('Freeload comment (Only for shift coordination):'),
-                $freeload_comment
-            )
+                $freeloaded_comment
+            ),
         ];
     }
 
@@ -205,7 +223,7 @@ function ShiftEntry_edit_view(
             form_info(__('Type:'), $type),
             $comment,
             join('', $freeload_form),
-            form_submit('submit', __('Save'))
-        ])
+            form_submit('submit', __('Save')),
+        ]),
     ]);
 }

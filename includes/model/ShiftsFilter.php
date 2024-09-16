@@ -2,6 +2,8 @@
 
 namespace Engelsystem;
 
+use Engelsystem\Helpers\Carbon;
+
 /**
  * BO Class that stores all parameters used to filter shifts for users.
  *
@@ -12,12 +14,12 @@ class ShiftsFilter
     /**
      * Shift is completely full.
      */
-    const FILLED_FILLED = 1;
+    public const FILLED_FILLED = 1;
 
     /**
      * Shift has some free slots.
      */
-    const FILLED_FREE = 0;
+    public const FILLED_FREE = 0;
 
     /**
      * Has the user "user shifts admin" privilege?
@@ -28,9 +30,6 @@ class ShiftsFilter
 
     /** @var int[] */
     private $filled;
-
-    /** @var int[] */
-    private $rooms;
 
     /** @var int[] */
     private $types;
@@ -46,15 +45,14 @@ class ShiftsFilter
      *
      * @param bool  $user_shifts_admin
      * @param int[] $rooms
-     * @param int[] $types
+     * @param int[] $angelTypes
      */
-    public function __construct($user_shifts_admin = false, $rooms = [], $types = [])
+    public function __construct($user_shifts_admin = false, private $rooms = [], $angelTypes = [])
     {
-        $this->rooms = $rooms;
-        $this->types = $types;
+        $this->types = $angelTypes;
 
         $this->filled = [
-            ShiftsFilter::FILLED_FREE
+            ShiftsFilter::FILLED_FREE,
         ];
 
         if ($user_shifts_admin) {
@@ -91,6 +89,14 @@ class ShiftsFilter
     }
 
     /**
+     * @return Carbon
+     */
+    public function getStart()
+    {
+        return Carbon::createFromTimestamp($this->startTime);
+    }
+
+    /**
      * @return int unix timestamp
      */
     public function getStartTime()
@@ -104,6 +110,14 @@ class ShiftsFilter
     public function setStartTime($startTime)
     {
         $this->startTime = $startTime;
+    }
+
+    /**
+     * @return Carbon
+     */
+    public function getEnd()
+    {
+        return Carbon::createFromTimestamp($this->endTime);
     }
 
     /**

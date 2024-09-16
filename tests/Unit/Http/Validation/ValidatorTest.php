@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Http\Validation;
 
 use Engelsystem\Http\Validation\Validator;
@@ -13,7 +15,7 @@ class ValidatorTest extends TestCase
      * @covers \Engelsystem\Http\Validation\Validator::getData
      * @covers \Engelsystem\Http\Validation\Validator::getErrors
      */
-    public function testValidate()
+    public function testValidate(): void
     {
         $val = new Validator();
 
@@ -36,7 +38,7 @@ class ValidatorTest extends TestCase
     /**
      * @covers \Engelsystem\Http\Validation\Validator::validate
      */
-    public function testValidateChaining()
+    public function testValidateChaining(): void
     {
         $val = new Validator();
 
@@ -63,7 +65,28 @@ class ValidatorTest extends TestCase
     /**
      * @covers \Engelsystem\Http\Validation\Validator::validate
      */
-    public function testValidateNotImplemented()
+    public function testValidateMultipleParameters(): void
+    {
+        $val = new Validator();
+
+        $this->assertFalse($val->validate(
+            ['lorem' => 'h'],
+            ['lorem' => 'length:2:3']
+        ));
+        $this->assertTrue($val->validate(
+            ['lorem' => 'hey'],
+            ['lorem' => 'length:2:3']
+        ));
+        $this->assertFalse($val->validate(
+            ['lorem' => 'heyy'],
+            ['lorem' => 'length:2:3']
+        ));
+    }
+
+    /**
+     * @covers \Engelsystem\Http\Validation\Validator::validate
+     */
+    public function testValidateNotImplemented(): void
     {
         $val = new Validator();
 
@@ -79,7 +102,7 @@ class ValidatorTest extends TestCase
      * @covers \Engelsystem\Http\Validation\Validator::map
      * @covers \Engelsystem\Http\Validation\Validator::mapBack
      */
-    public function testValidateMapping()
+    public function testValidateMapping(): void
     {
         $val = new Validator();
 
@@ -90,6 +113,14 @@ class ValidatorTest extends TestCase
         $this->assertTrue($val->validate(
             ['foo' => '0'],
             ['foo' => 'int']
+        ));
+        $this->assertFalse($val->validate(
+            ['foo' => '0.0'],
+            ['foo' => 'int']
+        ));
+        $this->assertTrue($val->validate(
+            ['foo' => '0.0'],
+            ['foo' => 'float']
         ));
         $this->assertTrue($val->validate(
             ['foo' => 'on'],
@@ -109,7 +140,7 @@ class ValidatorTest extends TestCase
     /**
      * @covers \Engelsystem\Http\Validation\Validator::validate
      */
-    public function testValidateNesting()
+    public function testValidateNesting(): void
     {
         $val = new Validator();
 
@@ -139,5 +170,20 @@ class ValidatorTest extends TestCase
             ['foo' => 'T'],
             ['foo' => 'optional|int']
         ));
+    }
+
+    /**
+     * @covers \Engelsystem\Http\Validation\Validator::addErrors
+     */
+    public function testAddErrors(): void
+    {
+        $val = new Validator();
+        $val->addErrors(['bar' => ['Lorem']]);
+        $val->addErrors(['foo' => ['Foo value is definitely wrong!']]);
+
+        $this->assertEquals([
+            'bar' => ['Lorem'],
+            'foo' => ['Foo value is definitely wrong!'],
+        ], $val->getErrors());
     }
 }

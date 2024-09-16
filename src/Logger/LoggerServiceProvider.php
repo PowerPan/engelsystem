@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Logger;
 
 use Engelsystem\Container\ServiceProvider;
@@ -8,7 +10,7 @@ use Psr\Log\LoggerInterface;
 
 class LoggerServiceProvider extends ServiceProvider
 {
-    public function register()
+    public function register(): void
     {
         $logger = $this->app->make(UserAwareLogger::class);
         $this->app->instance('logger', $logger);
@@ -18,7 +20,7 @@ class LoggerServiceProvider extends ServiceProvider
         $this->app->bind(UserAwareLogger::class, 'logger');
     }
 
-    public function boot()
+    public function boot(): void
     {
         /** @var UserAwareLogger $logger */
         $logger = $this->app->get(UserAwareLogger::class);

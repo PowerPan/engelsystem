@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Http\Exceptions;
 
 use Engelsystem\Http\Exceptions\HttpNotFound;
@@ -10,7 +12,7 @@ class HttpNotFoundTest extends TestCase
     /**
      * @covers \Engelsystem\Http\Exceptions\HttpNotFound::__construct
      */
-    public function testConstruct()
+    public function testConstruct(): void
     {
         $exception = new HttpNotFound();
         $this->assertEquals(404, $exception->getStatusCode());

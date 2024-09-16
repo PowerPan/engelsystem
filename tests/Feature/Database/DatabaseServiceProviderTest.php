@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Feature\Database;
 
 use Engelsystem\Config\Config;
@@ -11,7 +13,7 @@ class DatabaseServiceProviderTest extends DatabaseTest
     /**
      * @covers \Engelsystem\Database\DatabaseServiceProvider::register()
      */
-    public function testRegister()
+    public function testRegister(): void
     {
         $this->app->instance('config', new Config([
             'database' => $this->getDbConfig(),

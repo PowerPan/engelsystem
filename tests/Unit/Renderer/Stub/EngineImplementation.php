@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Renderer\Stub;
 
 use Engelsystem\Renderer\Engine;
@@ -22,9 +24,6 @@ class EngineImplementation extends Engine
         return true;
     }
 
-    /**
-     * @return array
-     */
     public function getSharedData(): array
     {
         return $this->sharedData;

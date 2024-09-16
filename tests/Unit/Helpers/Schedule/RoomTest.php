@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Helpers\Schedule;
 
 use Engelsystem\Helpers\Schedule\Event;
@@ -14,7 +16,7 @@ class RoomTest extends TestCase
      * @covers \Engelsystem\Helpers\Schedule\Room::getEvent
      * @covers \Engelsystem\Helpers\Schedule\Room::setEvent
      */
-    public function testCreate()
+    public function testCreate(): void
     {
         $room = new Room('Test');
         $this->assertEquals('Test', $room->getName());

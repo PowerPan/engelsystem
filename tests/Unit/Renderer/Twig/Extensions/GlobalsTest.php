@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Renderer\Twig\Extensions;
 
 use Engelsystem\Config\Config;
@@ -19,7 +21,7 @@ class GlobalsTest extends ExtensionTest
      * @covers \Engelsystem\Renderer\Twig\Extensions\Globals::__construct
      * @covers \Engelsystem\Renderer\Twig\Extensions\Globals::getGlobals
      */
-    public function testGetGlobals()
+    public function testGetGlobals(): void
     {
         $this->initDatabase();
 

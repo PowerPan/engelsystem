@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Helpers;
 
 use Engelsystem\Config\Config;
@@ -23,7 +25,7 @@ class DumpServerServiceProviderTest extends ServiceProviderTest
         $varDumpServerConfig = [
             'host' => 'localhost',
             'port' => 80,
-            'enable' => true
+            'enable' => true,
         ];
 
         $config = new Config();
@@ -61,16 +63,13 @@ class DumpServerServiceProviderTest extends ServiceProviderTest
     /**
      * @covers \Engelsystem\Helpers\DumpServerServiceProvider::register
      * @dataProvider notEnabledDataProvider
-     *
-     * @param bool $enable
-     * @param string $environment
      */
     public function testRegisterShouldNotEnable(bool $enable, string $environment): void
     {
         $varDumpServerConfig = [
             'host' => 'localhost',
             'port' => 80,
-            'enable' => $enable
+            'enable' => $enable,
         ];
 
         $config = new Config();

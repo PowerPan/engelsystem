@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Helpers;
 
 use Engelsystem\Application;
@@ -12,7 +14,7 @@ class AssetsServiceProviderTest extends ServiceProviderTest
     /**
      * @covers \Engelsystem\Helpers\AssetsServiceProvider::register
      */
-    public function testRegister()
+    public function testRegister(): void
     {
         $app = new Application();
         $app->instance('path.assets.public', '/tmp');

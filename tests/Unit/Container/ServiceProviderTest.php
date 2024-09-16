@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Container;
 
 use Engelsystem\Container\ServiceProvider;
@@ -13,7 +15,7 @@ class ServiceProviderTest extends ServiceProviderTestCase
      * @covers \Engelsystem\Container\ServiceProvider::register
      * @covers \Engelsystem\Container\ServiceProvider::boot
      */
-    public function testRegister()
+    public function testRegister(): void
     {
         $app = $this->getApp();
 

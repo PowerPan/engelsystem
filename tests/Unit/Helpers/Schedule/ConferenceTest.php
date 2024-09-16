@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Helpers\Schedule;
 
 use Engelsystem\Helpers\Schedule\Conference;
@@ -18,7 +20,7 @@ class ConferenceTest extends TestCase
      * @covers \Engelsystem\Helpers\Schedule\Conference::getTimeslotDurationSeconds
      * @covers \Engelsystem\Helpers\Schedule\Conference::getBaseUrl
      */
-    public function testCreate()
+    public function testCreate(): void
     {
         $conference = new Conference('Doing stuff', 'DS');
         $this->assertEquals('Doing stuff', $conference->getTitle());

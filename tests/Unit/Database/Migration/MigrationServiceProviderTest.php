@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Database\Migration;
 
 use Engelsystem\Database\Database;
@@ -15,7 +17,7 @@ class MigrationServiceProviderTest extends ServiceProviderTest
     /**
      * @covers \Engelsystem\Database\Migration\MigrationServiceProvider::register()
      */
-    public function testRegister()
+    public function testRegister(): void
     {
         /** @var Migrate|MockObject $migration */
         $migration = $this->getMockBuilder(Migrate::class)

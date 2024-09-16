@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Middleware;
 
 use Engelsystem\Http\Request;
@@ -18,7 +20,7 @@ class RouteDispatcherTest extends TestCase
      * @covers \Engelsystem\Middleware\RouteDispatcher::__construct
      * @covers \Engelsystem\Middleware\RouteDispatcher::process
      */
-    public function testProcess()
+    public function testProcess(): void
     {
         /** @var FastRouteDispatcher|MockObject $dispatcher */
         /** @var ResponseInterface|MockObject $response */
@@ -54,7 +56,7 @@ class RouteDispatcherTest extends TestCase
     /**
      * @covers \Engelsystem\Middleware\RouteDispatcher::process
      */
-    public function testProcessNotFound()
+    public function testProcessNotFound(): void
     {
         /** @var FastRouteDispatcher|MockObject $dispatcher */
         /** @var ResponseInterface|MockObject $response */
@@ -91,7 +93,7 @@ class RouteDispatcherTest extends TestCase
     /**
      * @covers \Engelsystem\Middleware\RouteDispatcher::process
      */
-    public function testProcessNotAllowed()
+    public function testProcessNotAllowed(): void
     {
         /** @var FastRouteDispatcher|MockObject $dispatcher */
         /** @var ResponseInterface|MockObject $response */
@@ -118,9 +120,6 @@ class RouteDispatcherTest extends TestCase
         $this->assertEquals($response, $return);
     }
 
-    /**
-     * @return array
-     */
     protected function getMocks(): array
     {
         /** @var FastRouteDispatcher|MockObject $dispatcher */

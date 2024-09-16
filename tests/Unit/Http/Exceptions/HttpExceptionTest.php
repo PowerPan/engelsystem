@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Http\Exceptions;
 
 use Engelsystem\Http\Exceptions\HttpException;
@@ -12,7 +14,7 @@ class HttpExceptionTest extends TestCase
      * @covers \Engelsystem\Http\Exceptions\HttpException::getHeaders
      * @covers \Engelsystem\Http\Exceptions\HttpException::getStatusCode
      */
-    public function testConstruct()
+    public function testConstruct(): void
     {
         $exception = new HttpException(123);
         $this->assertEquals(123, $exception->getStatusCode());

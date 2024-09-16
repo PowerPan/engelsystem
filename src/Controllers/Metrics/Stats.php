@@ -15,6 +15,7 @@ use Engelsystem\Models\NewsComment;
 use Engelsystem\Models\OAuth;
 use Engelsystem\Models\Question;
 use Engelsystem\Models\Room;
+use Engelsystem\Models\Shifts\Shift;
 use Engelsystem\Models\User\License;
 use Engelsystem\Models\User\PasswordReset;
 use Engelsystem\Models\User\PersonalData;
@@ -22,55 +23,47 @@ use Engelsystem\Models\User\Settings;
 use Engelsystem\Models\User\State;
 use Engelsystem\Models\User\User;
 use Engelsystem\Models\Worklog;
+use Illuminate\Contracts\Database\Query\Builder as BuilderContract;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Database\Query\Expression as QueryExpression;
 use Illuminate\Support\Collection;
 
 class Stats
 {
-    /** @var Database */
-    protected $db;
-
-    /**
-     * @param Database $db
-     */
-    public function __construct(Database $db)
+    public function __construct(protected Database $db)
     {
-        $this->db = $db;
     }
 
     /**
      * The number of not arrived users
      *
      * @param bool|null $working
-     * @return int
      */
     public function arrivedUsers(bool $working = null): int
     {
         $query = State::whereArrived(true);
 
         if (!is_null($working)) {
-            // @codeCoverageIgnoreStart
             $query
                 ->leftJoin('worklogs', 'worklogs.user_id', '=', 'users_state.user_id')
-                ->leftJoin('ShiftEntry', 'ShiftEntry.UID', '=', 'users_state.user_id')
+                ->leftJoin('shift_entries', 'shift_entries.user_id', '=', 'users_state.user_id')
                 ->distinct();
 
-            $query->where(function ($query) use ($working) {
+            $query->where(function ($query) use ($working): void {
                 /** @var QueryBuilder $query */
                 if ($working) {
                     $query
-                        ->whereNotNull('ShiftEntry.SID')
+                        ->whereNotNull('shift_entries.shift_id')
                         ->orWhereNotNull('worklogs.hours');
 
                     return;
                 }
 
                 $query
-                    ->whereNull('ShiftEntry.SID')
+                    ->whereNull('shift_entries.shift_id')
                     ->whereNull('worklogs.hours');
             });
-            // @codeCoverageIgnoreEnd
         }
 
         return $query->count('users_state.user_id');
@@ -78,100 +71,63 @@ class Stats
 
     /**
      * The number of not arrived users
-     *
-     * @return int
      */
     public function newUsers(): int
     {
         return State::whereArrived(false)->count();
     }
 
-    /**
-     * @return int
-     */
     public function forceActiveUsers(): int
     {
         return State::whereForceActive(true)->count();
     }
 
-    /**
-     * @return int
-     */
     public function usersPronouns(): int
     {
         return PersonalData::where('pronoun', '!=', '')->count();
     }
 
-    /**
-     * @param string $type
-     *
-     * @return int
-     */
     public function email(string $type): int
     {
-        switch ($type) {
-            case 'system':
-                $query = Settings::whereEmailShiftinfo(true);
-                break;
-            case 'humans':
-                $query = Settings::whereEmailHuman(true);
-                break;
-            case 'goody':
-                $query = Settings::whereEmailGoody(true);
-                break;
-            case 'news':
-                $query = Settings::whereEmailNews(true);
-                break;
-            default:
-                return 0;
-        }
-
-        return $query->count();
+        return match ($type) {
+            'system' => Settings::whereEmailShiftinfo(true)->count(),
+            'humans' => Settings::whereEmailHuman(true)->count(),
+            'goody'  => Settings::whereEmailGoody(true)->count(),
+            'news'   => Settings::whereEmailNews(true)->count(),
+            default  => 0,
+        };
     }
 
     /**
      * The number of currently working users
      *
      * @param bool|null $freeloaded
-     * @return int
-     * @codeCoverageIgnore
      */
     public function currentlyWorkingUsers(bool $freeloaded = null): int
     {
         $query = User::query()
-            ->join('ShiftEntry', 'ShiftEntry.UID', '=', 'users.id')
-            ->join('Shifts', 'Shifts.SID', '=', 'ShiftEntry.SID')
-            ->where('Shifts.start', '<=', time())
-            ->where('Shifts.end', '>', time());
+            ->join('shift_entries', 'shift_entries.user_id', '=', 'users.id')
+            ->join('shifts', 'shifts.id', '=', 'shift_entries.shift_id')
+            ->where('shifts.start', '<=', Carbon::now())
+            ->where('shifts.end', '>', Carbon::now());
 
         if (!is_null($freeloaded)) {
-            $query->where('ShiftEntry.freeloaded', '=', $freeloaded);
+            $query->where('shift_entries.freeloaded', '=', $freeloaded);
         }
 
         return $query->count();
     }
 
-    /**
-     * @return QueryBuilder
-     */
-    protected function vouchersQuery()
+    protected function vouchersQuery(): Builder
     {
         return State::query();
     }
 
-    /**
-     * @return int
-     */
     public function vouchers(): int
     {
-        return (int)$this->vouchersQuery()->sum('got_voucher');
+        return (int) $this->vouchersQuery()->sum('got_voucher');
     }
 
-    /**
-     * @param array $buckets
-     *
-     * @return array
-     */
     public function vouchersBuckets(array $buckets): array
     {
         $return = [];
@@ -188,17 +144,11 @@ class Stats
         return $return;
     }
 
-    /**
-     * @return int
-     */
     public function tshirts(): int
     {
         return State::whereGotShirt(true)->count();
     }
 
-    /**
-     * @return Collection
-     */
     public function tshirtSizes(): Collection
     {
         return PersonalData::query()
@@ -208,9 +158,6 @@ class Stats
             ->get();
     }
 
-    /**
-     * @return Collection
-     */
     public function languages(): Collection
     {
         return Settings::query()
@@ -219,9 +166,6 @@ class Stats
             ->get();
     }
 
-    /**
-     * @return Collection
-     */
     public function themes(): Collection
     {
         return Settings::query()
@@ -232,7 +176,6 @@ class Stats
 
     /**
      * @param string|null $vehicle
-     * @return int
      */
     public function licenses(string $vehicle): int
     {
@@ -256,21 +199,20 @@ class Stats
      * @param bool|null $done
      * @param bool|null $freeloaded
      *
-     * @codeCoverageIgnore
-     * @return QueryBuilder
+     * @codeCoverageIgnore because it is only used in functions that use TIMESTAMPDIFF
      */
     protected function workSecondsQuery(bool $done = null, bool $freeloaded = null): QueryBuilder
     {
         $query = $this
-            ->getQuery('ShiftEntry')
-            ->join('Shifts', 'Shifts.SID', '=', 'ShiftEntry.SID');
+            ->getQuery('shift_entries')
+            ->join('shifts', 'shifts.id', '=', 'shift_entries.shift_id');
 
         if (!is_null($freeloaded)) {
             $query->where('freeloaded', '=', $freeloaded);
         }
 
         if (!is_null($done)) {
-            $query->where('end', ($done == true ? '<' : '>='), time());
+            $query->where('end', ($done ? '<' : '>='), Carbon::now());
         }
 
         return $query;
@@ -282,49 +224,41 @@ class Stats
      * @param bool|null $done
      * @param bool|null $freeloaded
      *
-     * @return int
-     * @codeCoverageIgnore
+     * @codeCoverageIgnore as TIMESTAMPDIFF is not implemented in SQLite
      */
     public function workSeconds(bool $done = null, bool $freeloaded = null): int
     {
         $query = $this->workSecondsQuery($done, $freeloaded);
 
-        return (int)$query->sum($this->raw('end - start'));
+        return (int) $query->sum($this->raw('TIMESTAMPDIFF(MINUTE, start, end) * 60'));
     }
 
     /**
      * The number of worked shifts
      *
-     * @param array     $buckets
      * @param bool|null $done
      * @param bool|null $freeloaded
      *
-     * @return array
-     * @codeCoverageIgnore
+     * @codeCoverageIgnore as TIMESTAMPDIFF is not implemented in SQLite
      */
     public function workBuckets(array $buckets, bool $done = null, bool $freeloaded = null): array
     {
         return $this->getBuckets(
             $buckets,
             $this->workSecondsQuery($done, $freeloaded),
-            'UID',
-            'SUM(end - start)',
-            'SUM(end - start)'
+            'user_id',
+            'SUM(TIMESTAMPDIFF(MINUTE, start, end) * 60)',
+            'SUM(TIMESTAMPDIFF(MINUTE, start, end) * 60)'
         );
     }
 
-    /**
-     * @param array        $buckets
-     * @param QueryBuilder $basicQuery
-     * @param string       $groupBy
-     * @param string       $having
-     * @param string       $count
-     *
-     * @return array
-     * @codeCoverageIgnore As long as its only used for old tables
-     */
-    protected function getBuckets(array $buckets, $basicQuery, string $groupBy, string $having, string $count): array
-    {
+    protected function getBuckets(
+        array $buckets,
+        BuilderContract $basicQuery,
+        string $groupBy,
+        string $having,
+        string $count
+    ): array {
         $return = [];
 
         foreach ($buckets as $bucket) {
@@ -341,22 +275,12 @@ class Stats
         return $return;
     }
 
-    /**
-     * @return int
-     * @codeCoverageIgnore
-     */
     public function worklogSeconds(): int
     {
-        return (int)Worklog::query()
+        return (int) Worklog::query()
             ->sum($this->raw('hours * 60 * 60'));
     }
 
-    /**
-     * @param array $buckets
-     *
-     * @return array
-     * @codeCoverageIgnore
-     */
     public function worklogBuckets(array $buckets): array
     {
         return $this->getBuckets(
@@ -368,29 +292,19 @@ class Stats
         );
     }
 
-    /**
-     * @return int
-     */
     public function rooms(): int
     {
         return Room::query()
             ->count();
     }
 
-    /**
-     * @return int
-     * @codeCoverageIgnore
-     */
     public function shifts(): int
     {
-        return $this
-            ->getQuery('Shifts')
-            ->count();
+        return Shift::count();
     }
 
     /**
      * @param bool|null $meeting
-     * @return int
      */
     public function announcements(bool $meeting = null): int
     {
@@ -399,9 +313,6 @@ class Stats
         return $query->count();
     }
 
-    /**
-     * @return int
-     */
     public function comments(): int
     {
         return NewsComment::query()
@@ -410,7 +321,6 @@ class Stats
 
     /**
      * @param bool|null $answered
-     * @return int
      */
     public function questions(bool $answered = null): int
     {
@@ -426,25 +336,16 @@ class Stats
         return $query->count();
     }
 
-    /**
-     * @return int
-     */
     public function faq(): int
     {
         return Faq::query()->count();
     }
 
-    /**
-     * @return int
-     */
     public function messages(): int
     {
         return Message::query()->count();
     }
 
-    /**
-     * @return int
-     */
     public function sessions(): int
     {
         return $this
@@ -452,9 +353,6 @@ class Stats
             ->count();
     }
 
-    /**
-     * @return Collection
-     */
     public function oauth(): Collection
     {
         return OAuth::query()
@@ -463,9 +361,6 @@ class Stats
             ->get();
     }
 
-    /**
-     * @return float
-     */
     public function databaseRead(): float
     {
         $start = microtime(true);
@@ -475,9 +370,6 @@ class Stats
         return microtime(true) - $start;
     }
 
-    /**
-     * @return float
-     */
     public function databaseWrite(): float
     {
         $config = (new EventConfig())->findOrNew('last_metrics');
@@ -494,7 +386,6 @@ class Stats
 
     /**
      * @param string|null $level
-     * @return int
      */
     public function logEntries(string $level = null): int
     {
@@ -503,18 +394,11 @@ class Stats
         return $query->count();
     }
 
-    /**
-     * @return int
-     */
     public function passwordResets(): int
     {
         return PasswordReset::query()->count();
     }
 
-    /**
-     * @param string $table
-     * @return QueryBuilder
-     */
     protected function getQuery(string $table): QueryBuilder
     {
         return $this->db
@@ -522,11 +406,7 @@ class Stats
             ->table($table);
     }
 
-    /**
-     * @param mixed $value
-     * @return QueryExpression
-     */
-    protected function raw($value): QueryExpression
+    protected function raw(mixed $value): QueryExpression
     {
         return $this->db->getConnection()->raw($value);
     }

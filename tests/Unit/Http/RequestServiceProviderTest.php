@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Http;
 
 use Engelsystem\Config\Config;
@@ -12,10 +14,7 @@ use Symfony\Component\HttpFoundation\Request as SymfonyRequest;
 
 class RequestServiceProviderTest extends ServiceProviderTest
 {
-    /**
-     * @return array
-     */
-    public function provideRegister()
+    public function provideRegister(): array
     {
         return [
             ['', []],
@@ -30,15 +29,13 @@ class RequestServiceProviderTest extends ServiceProviderTest
 
     /**
      * @dataProvider provideRegister
-     * @covers       \Engelsystem\Http\RequestServiceProvider::register()
-     *
-     * @param string|array $configuredProxies
-     * @param array        $trustedProxies
+     * @covers       \Engelsystem\Http\RequestServiceProvider::register
      */
-    public function testRegister($configuredProxies, $trustedProxies)
+    public function testRegister(string|array $configuredProxies, array $trustedProxies): void
     {
-        /** @var Config|MockObject $config */
-        $config = $this->getMockBuilder(Config::class)->getMock();
+        $config = new Config([
+            'trusted_proxies' => $configuredProxies,
+        ]);
         /** @var Request|MockObject $request */
         $request = $this->getMockBuilder(Request::class)->getMock();
 
@@ -46,7 +43,6 @@ class RequestServiceProviderTest extends ServiceProviderTest
 
         $this->setExpects($app, 'call', [[Request::class, 'createFromGlobals']], $request);
         $this->setExpects($app, 'get', ['config'], $config);
-        $this->setExpects($config, 'get', ['trusted_proxies'], $configuredProxies);
 
         $app->expects($this->exactly(3))
             ->method('instance')
@@ -61,9 +57,67 @@ class RequestServiceProviderTest extends ServiceProviderTest
             ->setConstructorArgs([$app])
             ->onlyMethods(['setTrustedProxies'])
             ->getMock();
-        $serviceProvider->expects($this->once())
-            ->method('setTrustedProxies')
-            ->with($request, $trustedProxies);
+        $this->setExpects($serviceProvider, 'setTrustedProxies', [$request, $trustedProxies]);
         $serviceProvider->register();
+    }
+
+    /**
+     * @covers \Engelsystem\Http\RequestServiceProvider::register
+     */
+    public function testRegisterRewritingPrefix(): void
+    {
+        $config = new Config([
+            'url' => 'https://some.app/subpath',
+        ]);
+        $this->app->instance('config', $config);
+        $request = new Request();
+
+        /** @var ServiceProvider|MockObject $serviceProvider */
+        $serviceProvider = $this->getMockBuilder(RequestServiceProvider::class)
+            ->setConstructorArgs([$this->app])
+            ->onlyMethods(['createRequestWithoutPrefix'])
+            ->getMock();
+        $this->setExpects($serviceProvider, 'createRequestWithoutPrefix', null, $request);
+
+        $serviceProvider->register();
+    }
+
+    /**
+     * Provide test data: [requested uri; expected rewrite, configured app url]
+     *
+     * @return string[][]
+     */
+    public function provideRequestPathPrefix(): array
+    {
+        return [
+            ['/', '/'],
+            ['/sub', '/sub'],
+            ['/subpath2', '/subpath2'],
+            ['/subpath2/test', '/subpath2/test'],
+            ['/subpath', '/'],
+            ['/subpath/', '/'],
+            ['/subpath/test', '/test'],
+            ['/subpath/foo/bar', '/foo/bar'],
+            ['/path/foo/bar', '/foo/bar', 'https://some.app/path/'],
+        ];
+    }
+
+    /**
+     * @covers       \Engelsystem\Http\RequestServiceProvider::createRequestWithoutPrefix
+     * @dataProvider provideRequestPathPrefix
+     */
+    public function testCreateRequestWithoutPrefix(string $requestUri, string $expected, string $url = null): void
+    {
+        $_SERVER['REQUEST_URI'] = $requestUri;
+        $config = new Config([
+            'url' => $url ?: 'https://some.app/subpath',
+        ]);
+        $this->app->instance('config', $config);
+        $serviceProvider = new RequestServiceProvider($this->app);
+        $serviceProvider->register();
+
+        /** @var Request $request */
+        $request = $this->app->get('request');
+        $this->assertEquals($expected, $request->getPathInfo());
     }
 }

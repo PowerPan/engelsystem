@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Http\Exceptions;
 
 use Engelsystem\Http\Exceptions\HttpForbidden;
@@ -10,7 +12,7 @@ class HttpForbiddenTest extends TestCase
     /**
      * @covers \Engelsystem\Http\Exceptions\HttpForbidden::__construct
      */
-    public function testConstruct()
+    public function testConstruct(): void
     {
         $exception = new HttpForbidden();
         $this->assertEquals(403, $exception->getStatusCode());

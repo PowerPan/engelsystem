@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Database;
 
 use Engelsystem\Database\Database;
@@ -11,15 +13,14 @@ use PHPUnit\Framework\TestCase;
 
 class DatabaseTest extends TestCase
 {
-    /** @var DatabaseConnection */
-    protected $connection;
+    protected DatabaseConnection $connection;
 
     /**
      * @covers \Engelsystem\Database\Database::__construct()
      * @covers \Engelsystem\Database\Database::getConnection()
      * @covers \Engelsystem\Database\Database::getPdo()
      */
-    public function testInit()
+    public function testInit(): void
     {
         /** @var PDO|MockObject $pdo */
         $pdo = $this->getMockBuilder(PDO::class)
@@ -44,7 +45,7 @@ class DatabaseTest extends TestCase
     /**
      * @covers \Engelsystem\Database\Database::select()
      */
-    public function testSelect()
+    public function testSelect(): void
     {
         $db = new Database($this->connection);
 
@@ -58,7 +59,7 @@ class DatabaseTest extends TestCase
     /**
      * @covers \Engelsystem\Database\Database::selectOne()
      */
-    public function testSelectOne()
+    public function testSelectOne(): void
     {
         $db = new Database($this->connection);
 
@@ -75,7 +76,7 @@ class DatabaseTest extends TestCase
     /**
      * @covers \Engelsystem\Database\Database::insert()
      */
-    public function testInsert()
+    public function testInsert(): void
     {
         $db = new Database($this->connection);
 
@@ -86,7 +87,7 @@ class DatabaseTest extends TestCase
     /**
      * @covers \Engelsystem\Database\Database::update()
      */
-    public function testUpdate()
+    public function testUpdate(): void
     {
         $db = new Database($this->connection);
 
@@ -100,7 +101,7 @@ class DatabaseTest extends TestCase
     /**
      * @covers \Engelsystem\Database\Database::delete()
      */
-    public function testDelete()
+    public function testDelete(): void
     {
         $db = new Database($this->connection);
 

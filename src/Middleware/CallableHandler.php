@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Middleware;
 
 use Engelsystem\Container\Container;
@@ -15,12 +17,10 @@ class CallableHandler implements MiddlewareInterface, RequestHandlerInterface
     /** @var callable */
     protected $callable;
 
-    /** @var Container */
-    protected $container;
+    protected ?Container $container = null;
 
     /**
      * @param callable  $callable The callable that should be wrapped
-     * @param Container $container
      */
     public function __construct(callable $callable, Container $container = null)
     {
@@ -31,10 +31,6 @@ class CallableHandler implements MiddlewareInterface, RequestHandlerInterface
     /**
      * Process an incoming server request and return a response, optionally delegating
      * response creation to a handler.
-     *
-     * @param ServerRequestInterface  $request
-     * @param RequestHandlerInterface $handler
-     * @return ResponseInterface
      */
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
@@ -43,9 +39,6 @@ class CallableHandler implements MiddlewareInterface, RequestHandlerInterface
 
     /**
      * Handle the request and return a response.
-     *
-     * @param ServerRequestInterface $request
-     * @return ResponseInterface
      */
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
@@ -54,9 +47,6 @@ class CallableHandler implements MiddlewareInterface, RequestHandlerInterface
 
     /**
      * Execute the callable and return a response
-     *
-     * @param array $arguments
-     * @return ResponseInterface
      */
     protected function execute(array $arguments = []): ResponseInterface
     {
@@ -75,10 +65,7 @@ class CallableHandler implements MiddlewareInterface, RequestHandlerInterface
         return $response->withContent($return);
     }
 
-    /**
-     * @return callable
-     */
-    public function getCallable()
+    public function getCallable(): callable
     {
         return $this->callable;
     }

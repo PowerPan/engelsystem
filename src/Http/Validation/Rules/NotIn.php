@@ -1,14 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Http\Validation\Rules;
 
 class NotIn extends In
 {
-    /**
-     * @param mixed $input
-     * @return bool
-     */
-    public function validate($input)
+    public function validate(mixed $input): bool
     {
         return !parent::validate($input);
     }

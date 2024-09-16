@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Middleware\Stub;
 
 use Exception;
@@ -12,8 +14,6 @@ class ExceptionMiddlewareHandler implements RequestHandlerInterface
     /**
      * Throws an exception
      *
-     * @param ServerRequestInterface $request
-     * @return ResponseInterface
      * @throws Exception
      */
     public function handle(ServerRequestInterface $request): ResponseInterface

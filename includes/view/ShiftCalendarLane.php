@@ -2,6 +2,7 @@
 
 namespace Engelsystem;
 
+use Engelsystem\Models\Shifts\Shift;
 use Exception;
 
 /**
@@ -9,40 +10,26 @@ use Exception;
  */
 class ShiftCalendarLane
 {
-    /** @var int */
-    private $firstBlockStartTime;
-
-    /** @var int */
-    private $blockCount;
-
-    /** @var string */
-    private $header;
-
-    /** @var array[] */
+    /** @var Shift[] */
     private $shifts = [];
 
     /**
      * ShiftCalendarLane constructor.
      *
      * @param string $header
-     * @param int    $firstBlockStartTime Unix timestamp
-     * @param int    $blockCount
      */
-    public function __construct($header, $firstBlockStartTime, $blockCount)
+    public function __construct(private $header)
     {
-        $this->header = $header;
-        $this->firstBlockStartTime = $firstBlockStartTime;
-        $this->blockCount = $blockCount;
     }
 
     /**
      * Adds a shift to the lane, but only if it fits.
      * Returns true on success.
      *
-     * @param array $shift The shift to add
+     * @param Shift $shift The shift to add
      * @throws Exception if the shift doesn't fit into the lane.
      */
-    public function addShift($shift)
+    public function addShift(Shift $shift)
     {
         if ($this->shiftFits($shift)) {
             $this->shifts[] = $shift;
@@ -55,14 +42,14 @@ class ShiftCalendarLane
     /**
      * Returns true if given shift fits into this lane.
      *
-     * @param array $newShift
+     * @param Shift $newShift
      * @return bool
      * @internal param array $shift The shift to fit into this lane
      */
-    public function shiftFits($newShift)
+    public function shiftFits(Shift $newShift)
     {
         foreach ($this->shifts as $laneShift) {
-            if (!($newShift['start'] >= $laneShift['end'] || $newShift['end'] <= $laneShift['start'])) {
+            if (!($newShift->start >= $laneShift->end || $newShift->end <= $laneShift->start)) {
                 return false;
             }
         }
@@ -79,7 +66,7 @@ class ShiftCalendarLane
     }
 
     /**
-     * @return array[]
+     * @return Shift[]
      */
     public function getShifts()
     {

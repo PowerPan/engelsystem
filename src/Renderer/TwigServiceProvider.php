@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Renderer;
 
 use Engelsystem\Config\Config as EngelsystemConfig;
@@ -12,9 +14,11 @@ use Engelsystem\Renderer\Twig\Extensions\Develop;
 use Engelsystem\Renderer\Twig\Extensions\Globals;
 use Engelsystem\Renderer\Twig\Extensions\Legacy;
 use Engelsystem\Renderer\Twig\Extensions\Markdown;
+use Engelsystem\Renderer\Twig\Extensions\Notification;
 use Engelsystem\Renderer\Twig\Extensions\Session;
 use Engelsystem\Renderer\Twig\Extensions\Translation;
 use Engelsystem\Renderer\Twig\Extensions\Url;
+use Engelsystem\Renderer\Twig\Extensions\Uuid;
 use Symfony\Component\VarDumper\VarDumper;
 use Twig\Environment as Twig;
 use Twig\Extension\CoreExtension as TwigCore;
@@ -23,23 +27,25 @@ use TwigBridge\Extension\Laravel\Model as TwigModel;
 
 class TwigServiceProvider extends ServiceProvider
 {
-    /** @var array */
-    protected $extensions = [
+    /** @var array<string, class-string> */
+    protected array $extensions = [
         'assets'         => Assets::class,
         'authentication' => Authentication::class,
         'config'         => Config::class,
         'csrf'           => Csrf::class,
         'develop'        => Develop::class,
         'globals'        => Globals::class,
+        'notification'   => Notification::class,
         'twigmodel'      => TwigModel::class,
         'session'        => Session::class,
         'legacy'         => Legacy::class,
         'markdown'       => Markdown::class,
         'translation'    => Translation::class,
         'url'            => Url::class,
+        'uuid'           => Uuid::class,
     ];
 
-    public function register()
+    public function register(): void
     {
         $this->registerTwigEngine();
 
@@ -48,7 +54,7 @@ class TwigServiceProvider extends ServiceProvider
         }
     }
 
-    public function boot()
+    public function boot(): void
     {
         /** @var Twig $renderer */
         $renderer = $this->app->get('twig.environment');
@@ -64,7 +70,7 @@ class TwigServiceProvider extends ServiceProvider
         }
     }
 
-    protected function registerTwigEngine()
+    protected function registerTwigEngine(): void
     {
         $viewsPath = $this->app->get('path.views');
         /** @var EngelsystemConfig $config */
@@ -76,8 +82,10 @@ class TwigServiceProvider extends ServiceProvider
         $this->app->instance('twig.loader', $twigLoader);
 
         $cache = $this->app->get('path.cache.views');
+        $twigDebug = false;
         if ($config->get('environment') == 'development') {
             $cache = false;
+            $twigDebug = true;
         }
 
         $twig = $this->app->make(
@@ -86,7 +94,8 @@ class TwigServiceProvider extends ServiceProvider
                 'options' => [
                     'cache'            => $cache,
                     'auto_reload'      => true,
-                    'strict_variables' => ($config->get('environment') == 'development'),
+                    'debug'            => $twigDebug,
+                    'strict_variables' => $twigDebug,
                 ],
             ]
         );
@@ -102,11 +111,7 @@ class TwigServiceProvider extends ServiceProvider
         $this->app->tag('renderer.twigEngine', ['renderer.engine']);
     }
 
-    /**
-     * @param string $class
-     * @param string $alias
-     */
-    protected function registerTwigExtensions(string $class, string $alias)
+    protected function registerTwigExtensions(string $class, string $alias): void
     {
         $alias = 'twig.extension.' . $alias;
 

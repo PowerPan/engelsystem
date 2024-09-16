@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Renderer;
 
 use Psr\Log\LoggerAwareTrait;
@@ -9,14 +11,12 @@ class Renderer
     use LoggerAwareTrait;
 
     /** @var EngineInterface[] */
-    protected $renderer = [];
+    protected array $renderer = [];
 
     /**
      * Render a template
      *
-     * @param string  $template
      * @param mixed[] $data
-     * @return string
      */
     public function render(string $template, array $data = []): string
     {
@@ -37,8 +37,6 @@ class Renderer
 
     /**
      * Add a new renderer engine
-     *
-     * @param EngineInterface $renderer
      */
     public function addRenderer(EngineInterface $renderer): void
     {

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Middleware;
 
 use Engelsystem\Application;
@@ -17,7 +19,7 @@ class ResolvesMiddlewareTraitTest extends TestCase
      * @covers \Engelsystem\Middleware\ResolvesMiddlewareTrait::isMiddleware
      * @covers \Engelsystem\Middleware\ResolvesMiddlewareTrait::resolveMiddleware
      */
-    public function testResolveMiddleware()
+    public function testResolveMiddleware(): void
     {
         /** @var Application|MockObject $container */
         $container = $this->createMock(Application::class);
@@ -52,7 +54,7 @@ class ResolvesMiddlewareTraitTest extends TestCase
     /**
      * @covers \Engelsystem\Middleware\ResolvesMiddlewareTrait::resolveMiddleware
      */
-    public function testResolveMiddlewareNoContainer()
+    public function testResolveMiddlewareNoContainer(): void
     {
         $middlewareInterface = $this->getMockForAbstractClass(MiddlewareInterface::class);
 

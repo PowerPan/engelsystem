@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Renderer;
 
 use Engelsystem\Renderer\EngineInterface;
@@ -16,7 +18,7 @@ class RendererServiceProviderTest extends ServiceProviderTest
      * @covers \Engelsystem\Renderer\RendererServiceProvider::registerHtmlEngine()
      * @covers \Engelsystem\Renderer\RendererServiceProvider::registerRenderer()
      */
-    public function testRegister()
+    public function testRegister(): void
     {
         /** @var Renderer|MockObject $renderer */
         $renderer = $this->getMockBuilder(Renderer::class)
@@ -55,7 +57,7 @@ class RendererServiceProviderTest extends ServiceProviderTest
     /**
      * @covers \Engelsystem\Renderer\RendererServiceProvider::boot()
      */
-    public function testBoot()
+    public function testBoot(): void
     {
         /** @var Renderer|MockObject $renderer */
         $renderer = $this->getMockBuilder(Renderer::class)

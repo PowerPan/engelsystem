@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Http\Validation;
 
 use Engelsystem\Application;
@@ -14,7 +16,7 @@ class ValidationServiceProviderTest extends ServiceProviderTest
     /**
      * @covers \Engelsystem\Http\Validation\ValidationServiceProvider::register
      */
-    public function testRegister()
+    public function testRegister(): void
     {
         $app = new Application();
 

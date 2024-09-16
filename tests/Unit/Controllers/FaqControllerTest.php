@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Controllers;
 
 use Engelsystem\Config\Config;
@@ -20,7 +22,7 @@ class FaqControllerTest extends TestCase
      * @covers \Engelsystem\Controllers\FaqController::__construct
      * @covers \Engelsystem\Controllers\FaqController::index
      */
-    public function testIndex()
+    public function testIndex(): void
     {
         $this->initDatabase();
         (new Faq(['question' => 'Xyz', 'text' => 'Abc']))->save();

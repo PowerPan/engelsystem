@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Http\Validation\Rules;
 
 use Engelsystem\Http\Validation\Rules\Checked;
@@ -10,7 +12,7 @@ class CheckedTest extends TestCase
     /**
      * @covers \Engelsystem\Http\Validation\Rules\Checked::validate
      */
-    public function testValidate()
+    public function testValidate(): void
     {
         $rule = new Checked();
 

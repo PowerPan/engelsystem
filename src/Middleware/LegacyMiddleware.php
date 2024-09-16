@@ -1,11 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Middleware;
 
 use Engelsystem\Helpers\Authenticator;
 use Engelsystem\Helpers\Translation\Translator;
 use Engelsystem\Http\Request;
-use Engelsystem\Http\Response;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -14,46 +15,27 @@ use Psr\Http\Server\RequestHandlerInterface;
 
 class LegacyMiddleware implements MiddlewareInterface
 {
-    protected $free_pages = [
+    /** @var array<string> */
+    protected array $free_pages = [
         'admin_event_config',
         'angeltypes',
-        'atom',
-        'ical',
         'public_dashboard',
         'rooms',
         'shift_entries',
         'shifts',
-        'shifts_json_export',
         'users',
         'user_driver_licenses',
-        'user_worklog',
         'admin_shifts_history',
     ];
 
-    /** @var ContainerInterface */
-    protected $container;
-
-    /** @var Authenticator */
-    protected $auth;
-
-    /**
-     * @param ContainerInterface $container
-     * @param Authenticator      $auth
-     */
-    public function __construct(ContainerInterface $container, Authenticator $auth)
+    public function __construct(protected ContainerInterface $container, protected Authenticator $auth)
     {
-        $this->container = $container;
-        $this->auth = $auth;
     }
 
     /**
      * Handle the request the old way
      *
      * Should be used before a 404 is send
-     *
-     * @param ServerRequestInterface  $request
-     * @param RequestHandlerInterface $handler
-     * @return ResponseInterface
      */
     public function process(
         ServerRequestInterface $request,
@@ -90,25 +72,12 @@ class LegacyMiddleware implements MiddlewareInterface
     /**
      * Get the legacy page content and title
      *
-     * @param string $page
      * @return array ['title', 'content']
      * @codeCoverageIgnore
      */
-    protected function loadPage($page)
+    protected function loadPage(string $page): array
     {
         switch ($page) {
-            case 'ical':
-                require_once realpath(__DIR__ . '/../../includes/pages/user_ical.php');
-                user_ical();
-                break;
-            case 'atom':
-                require_once realpath(__DIR__ . '/../../includes/pages/user_atom.php');
-                user_atom();
-                break;
-            case 'shifts_json_export':
-                require_once realpath(__DIR__ . '/../../includes/controller/shifts_controller.php');
-                shifts_json_export_controller();
-                break;
             case 'public_dashboard':
                 return public_dashboard_controller();
             case 'angeltypes':
@@ -139,12 +108,6 @@ class LegacyMiddleware implements MiddlewareInterface
                 $title = shifts_title();
                 $content = user_shifts();
                 return [$title, $content];
-            case 'user_worklog':
-                return user_worklog_controller();
-            case 'user_settings':
-                $title = settings_title();
-                $content = user_settings();
-                return [$title, $content];
             case 'register':
                 $title = register_title();
                 $content = guest_register();
@@ -164,10 +127,6 @@ class LegacyMiddleware implements MiddlewareInterface
             case 'admin_free':
                 $title = admin_free_title();
                 $content = admin_free();
-                return [$title, $content];
-            case 'admin_rooms':
-                $title = admin_rooms_title();
-                $content = admin_rooms();
                 return [$title, $content];
             case 'admin_groups':
                 $title = admin_groups_title();
@@ -189,19 +148,15 @@ class LegacyMiddleware implements MiddlewareInterface
     /**
      * Render the template
      *
-     * @param string $page
-     * @param string $title
-     * @param string $content
-     * @return Response
      * @codeCoverageIgnore
      */
-    protected function renderPage($page, $title, $content)
+    protected function renderPage(string | int $page, string $title, string $content): ResponseInterface
     {
         if (!empty($page) && is_int($page)) {
-            return response($content, (int)$page);
+            return response($content, $page);
         }
 
-        if (strpos((string)$content, '<html') !== false) {
+        if (strpos((string) $content, '<html') !== false) {
             return response($content);
         }
 

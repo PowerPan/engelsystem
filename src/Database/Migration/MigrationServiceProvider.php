@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Database\Migration;
 
 use Engelsystem\Container\ServiceProvider;
@@ -8,7 +10,7 @@ use Illuminate\Database\Schema\Builder as SchemaBuilder;
 
 class MigrationServiceProvider extends ServiceProvider
 {
-    public function register()
+    public function register(): void
     {
         /** @var Database $database */
         $database = $this->app->get(Database::class);

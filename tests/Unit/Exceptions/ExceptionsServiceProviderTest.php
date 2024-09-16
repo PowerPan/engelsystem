@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Exceptions;
 
+use Engelsystem\Environment;
 use Engelsystem\Exceptions\ExceptionsServiceProvider;
 use Engelsystem\Exceptions\Handler;
 use Engelsystem\Exceptions\Handlers\HandlerInterface;
@@ -20,7 +23,7 @@ class ExceptionsServiceProviderTest extends ServiceProviderTest
      * @covers \Engelsystem\Exceptions\ExceptionsServiceProvider::addProductionHandler
      * @covers \Engelsystem\Exceptions\ExceptionsServiceProvider::register
      */
-    public function testRegister()
+    public function testRegister(): void
     {
         $app = $this->getApp(['make', 'instance', 'bind']);
 
@@ -69,8 +72,8 @@ class ExceptionsServiceProviderTest extends ServiceProviderTest
         $handler->expects($this->exactly(2))
             ->method('setHandler')
             ->withConsecutive(
-                [Handler::ENV_PRODUCTION, $legacyHandler],
-                [Handler::ENV_DEVELOPMENT, $whoopsHandler]
+                [Environment::PRODUCTION, $legacyHandler],
+                [Environment::DEVELOPMENT, $whoopsHandler]
             );
 
         $serviceProvider = new ExceptionsServiceProvider($app);
@@ -81,7 +84,7 @@ class ExceptionsServiceProviderTest extends ServiceProviderTest
      * @covers \Engelsystem\Exceptions\ExceptionsServiceProvider::boot
      * @covers \Engelsystem\Exceptions\ExceptionsServiceProvider::addLogger
      */
-    public function testBoot()
+    public function testBoot(): void
     {
         /** @var HandlerInterface|MockObject $handlerImpl */
         $handlerImpl = $this->getMockForAbstractClass(HandlerInterface::class);

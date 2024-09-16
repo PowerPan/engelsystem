@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Http\SessionHandlers\Stub;
 
 use Engelsystem\Http\SessionHandlers\AbstractHandler;
@@ -7,7 +9,7 @@ use Engelsystem\Http\SessionHandlers\AbstractHandler;
 class ArrayHandler extends AbstractHandler
 {
     /** @var string[] */
-    protected $content = [];
+    protected array $content = [];
 
     /**
      * {@inheritdoc}
@@ -41,17 +43,11 @@ class ArrayHandler extends AbstractHandler
         return true;
     }
 
-    /**
-     * @return string
-     */
     public function getName(): string
     {
         return $this->name;
     }
 
-    /**
-     * @return string
-     */
     public function getSessionPath(): string
     {
         return $this->sessionPath;

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Renderer\Twig\Extensions;
 
 use Engelsystem\Helpers\Authenticator;
@@ -13,7 +15,7 @@ class AuthenticationTest extends ExtensionTest
      * @covers \Engelsystem\Renderer\Twig\Extensions\Authentication::__construct
      * @covers \Engelsystem\Renderer\Twig\Extensions\Authentication::getFunctions
      */
-    public function testGetFunctions()
+    public function testGetFunctions(): void
     {
         /** @var Authenticator|MockObject $auth */
         $auth = $this->createMock(Authenticator::class);
@@ -30,7 +32,7 @@ class AuthenticationTest extends ExtensionTest
      * @covers \Engelsystem\Renderer\Twig\Extensions\Authentication::isAuthenticated
      * @covers \Engelsystem\Renderer\Twig\Extensions\Authentication::isGuest
      */
-    public function testIsAuthenticated()
+    public function testIsAuthenticated(): void
     {
         /** @var Authenticator|MockObject $auth */
         $auth = $this->createMock(Authenticator::class);

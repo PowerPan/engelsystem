@@ -12,6 +12,7 @@ variables:
   DOCROOT: /var/www/
 
 stages:
+  - prepare
   - validate
   - build
   - test
@@ -20,44 +21,90 @@ stages:
   - deploy-production
   - stop
 
-#
-# Validation
-#
+.use_cache: &use_cache
+  cache:
+    key: "$CI_JOB_NAME-$CI_COMMIT_REF_SLUG"
+    paths:
+      - .yarn-cache/
+      - vendor/
 
-check-style:
-  image: composer:latest
-  stage: validate
+# for jobs that depend on composer
+.use_composer: &use_composer
+  <<: *use_cache
+  needs:
+    - composer install
   before_script:
-    - composer --no-ansi global config --no-plugins allow-plugins.dealerdirect/phpcodesniffer-composer-installer true
-    - composer --no-ansi global require slevomat/coding-standard squizlabs/php_codesniffer
-    - export PATH=$PATH:$COMPOSER_HOME/vendor/bin
-  script:
-    - phpcs -p --no-colors --basepath="$PWD"
+    - composer install --no-ansi --no-progress
 
-check-editorconfig:
-  image: mstruebing/editorconfig-checker
-  stage: validate
-  script:
-    - ec -v
+# for jobs that depend on yarn
+.use_yarn: &use_yarn
+  <<: *use_cache
+  needs:
+    - yarn install
+  before_script:
+    - yarn install --check-frontend --cache-folder .yarn-cache
 
-validate-composer:
+#
+# Preparation
+#
+
+composer validate:
   image: composer:latest
-  stage: validate
+  stage: prepare
   script:
     - composer --no-ansi validate --strict
 
-validate-yarn:
+composer install:
+  <<: *use_cache
+  image: composer:latest
+  stage: prepare
+  needs:
+    - composer audit
+    - composer validate
+  script:
+    - composer install --no-ansi --no-progress
+
+composer audit:
+  image: php:latest
+  stage: prepare
+  needs:
+    - composer validate
+  before_script:
+    - curl -Ls https://github.com/symfony/cli/releases/latest/download/symfony_linux_amd64.gz | gzip -d > /bin/symfony
+    - chmod +x /bin/symfony
+  script:
+    - symfony check:security --no-ansi
+
+yarn-validate:
   image: node:alpine
-  stage: validate
+  stage: prepare
   before_script:
     - yarn global add package-json-validator
     - export PATH=$PATH:~/.yarn/bin
   script:
     - pjv
 
+yarn install:
+  <<: *use_cache
+  image: node:alpine
+  stage: prepare
+  needs:
+    - yarn-validate
+    - yarn audit
+  script:
+    - yarn install --check-frontend --cache-folder .yarn-cache
+
+yarn audit:
+  image: node:alpine
+  stage: prepare
+  needs:
+    - yarn-validate
+  script:
+    - yarn audit
+
 generate-version:
   image: alpine
-  stage: validate
+  stage: prepare
   artifacts:
     name: "${CI_JOB_NAME}_${CI_JOB_ID}_version"
     expire_in: 1 day
@@ -69,6 +116,44 @@ generate-version:
     - VERSION="$(git describe --abbrev=0 --tags)-${CI_COMMIT_REF_NAME}+${CI_PIPELINE_ID}.${CI_COMMIT_SHORT_SHA}"
     - echo "${VERSION}"
     - echo -n "${VERSION}" > storage/app/VERSION
+
+#
+# Validation
+#
+
+phpcs:
+  <<: *use_composer
+  image: composer:latest
+  stage: validate
+  script:
+    # tell phpcs the PHP version to check against
+    # we are using the min suppported version here
+    - ./vendor/bin/phpcs --config-set php_version 80100
+    - ./vendor/bin/phpcs -p --no-colors --basepath="$PWD"
+
+phpstan:
+  <<: *use_composer
+  image: composer:latest
+  stage: validate
+  script:
+    - ./vendor/bin/phpstan --no-progress
+
+yarn check:
+  <<: *use_yarn
+  image: node:alpine
+  stage: validate
+  script:
+    - yarn check
+
+yarn lint:
+  <<: *use_yarn
+  image: node:alpine
+  stage: validate
+  script:
+    # Install git, so that tools can use .gitignore.
+    # Not done in before_script because of <<: *use_yarn.
+    - apk add --no-cache git
+    - yarn lint
 
 #
 # Build
@@ -87,11 +172,12 @@ build-image:
   <<: *container_definition
   stage: build
   needs:
-    - check-editorconfig
-    - check-style
+    - phpcs
+    - phpstan
+    - composer validate
+    - yarn check
+    - yarn lint
     - generate-version
-    - validate-composer
-    - validate-yarn
   dependencies:
     - generate-version
   script:
@@ -102,23 +188,6 @@ build-image:
 #
 # Test
 #
-
-audit-composer:
-  image: php:latest
-  stage: test
-  needs: [ ]
-  before_script:
-    - curl -Ls https://github.com/symfony/cli/releases/latest/download/symfony_linux_amd64.gz | gzip -d > /bin/symfony
-    - chmod +x /bin/symfony
-  script:
-    - symfony check:security --no-ansi
-
-audit-yarn:
-  image: node:alpine
-  stage: test
-  needs: [ ]
-  script:
-    - yarn audit
 
 test:
   image:
@@ -148,7 +217,7 @@ test:
     - ./bin/migrate
   script:
     - >-
-      php -d pcov.enabled=1 -d pcov.directory=. vendor/bin/phpunit -vvv --colors=never
+      php -d memory_limit=1024M -d pcov.enabled=1 -d pcov.directory=. vendor/bin/phpunit -vvv --colors=never
       --coverage-text --coverage-html "${HOMEDIR}/coverage/"
       --log-junit "${HOMEDIR}/unittests.xml"
   after_script:
@@ -218,8 +287,8 @@ build-release-file:
   stage: release
   needs:
     - build-image
-    - audit-yarn
-    - audit-composer
+    - yarn audit
+    - composer audit
     - test
     - dump-database
     - generate-assets
@@ -274,6 +343,7 @@ deploy:
   dependencies: *deploy_needs
   environment:
     name: rsync-staging
+    deployment_tier: development
   only:
     - main
   script:
@@ -296,7 +366,10 @@ deploy:
     - test
     - build-image
   before_script:
-    - &kubectl_deployment_script if [[ -z "${KUBE_INGRESS_BASE_DOMAIN}" ]]; then echo "Skipping deployment"; exit; fi
+    - &kubectl_deployment_script |-
+      if [[ -z "${KUBE_INGRESS_BASE_DOMAIN}" ]]; then echo "Skipping deployment"; exit; fi
+      if [[ -n "${KUBE_CONTEXT}" ]]; then kubectl config use-context "${KUBE_CONTEXT}"; fi
+      if [[ -z "${KUBE_NAMESPACE}" ]]; then export KUBE_NAMESPACE=${CI_PROJECT_PATH_SLUG}-${CI_ENVIRONMENT_SLUG}; fi
 
 .deploy_k8s: &deploy_k8s
   <<: *kubectl_deployment
@@ -311,8 +384,12 @@ deploy:
     # CI_ENVIRONMENT_URL is the URL configured in the GitLab environment
     - export CI_ENVIRONMENT_URL="${CI_ENVIRONMENT_URL:-https://${CI_PROJECT_PATH_SLUG}.${KUBE_INGRESS_BASE_DOMAIN}/}"
     - export CI_IMAGE=$RELEASE_IMAGE
+    - export CI_INGRESS_CLASS=${CI_INGRESS_CLASS:-traefik}
+    - export CI_INGRESS_MATCH=${CI_INGRESS_MATCH:-$( if [[ "$CI_INGRESS_CLASS" == "nginx" ]]; then echo '/?(.*)'; fi )}
+    - export CI_INGRESS_TRAEFIK_ENTRYPOINT=${CI_INGRESS_TRAEFIK_ENTRYPOINT:-websecure}
     - export CI_INGRESS_DOMAIN=$(echo "$CI_ENVIRONMENT_URL" | grep -oP '(?:https?://)?\K([^/]+)' | head -n1)
     - export CI_INGRESS_PATH=$(echo "$CI_ENVIRONMENT_URL" | grep -oP '(?:https?://)?(?:[^/])+\K(.*)')
+    - '[[ "${CI_INGRESS_PATH}" == /* ]] || export CI_INGRESS_PATH="/${CI_INGRESS_PATH}"'
     - export CI_KUBE_NAMESPACE=$KUBE_NAMESPACE
     # Any available storage class like default, local-path (if you know what you are doing ;), longhorn etc.
     - export CI_PVC_SC=${CI_PVC_SC:-"${CI_PVC_SC_LOCAL:-local-path}"}
@@ -321,19 +398,24 @@ deploy:
     - export CI_CLUSTER_ISSUER=${CI_CLUSTER_ISSUER:-letsencrypt}
     - export CI_SETUP_ADMIN_PASSWORD=${CI_SETUP_ADMIN_PASSWORD}
 
+    - echo "Generating config"
     - cp deployment.tpl.yaml deployment.yaml
     - >-
       for env in ${!CI_*}; do
         sed -i "s#<${env}>#$( echo "${!env}" | head -n1 | sed -e 's~\\~\\\\~' -e 's~#~\\#~' )#g" deployment.yaml;
       done
 
+    - echo "Checking namespace ${CI_KUBE_NAMESPACE}"
+    - kubectl get namespace "${CI_KUBE_NAMESPACE}" > /dev/null 2>&1 || kubectl create namespace "${CI_KUBE_NAMESPACE}"
+
     - echo "Deploying to ${CI_ENVIRONMENT_URL}"
-    - kubectl apply -f deployment.yaml
+    - kubectl -n "${CI_KUBE_NAMESPACE}" diff -f deployment.yaml || true
+    - kubectl -n "${CI_KUBE_NAMESPACE}" apply -f deployment.yaml
     - >-
-      kubectl -n $CI_KUBE_NAMESPACE wait --for=condition=Ready pods --timeout=${CI_WAIT_TIMEOUT:-5}m
+      kubectl -n "${CI_KUBE_NAMESPACE}" wait --for=condition=Ready pods --timeout=${CI_WAIT_TIMEOUT:-5}m
       -l app=$CI_PROJECT_PATH_SLUG -l tier=database
     - >-
-      kubectl -n $CI_KUBE_NAMESPACE wait --for=condition=Ready pods --timeout=${CI_WAIT_TIMEOUT:-5}m
+      kubectl -n "${CI_KUBE_NAMESPACE}" wait --for=condition=Ready pods --timeout=${CI_WAIT_TIMEOUT:-5}m
       -l app=$CI_PROJECT_PATH_SLUG -l tier=application -l commit=$CI_COMMIT_SHORT_SHA
 
 .deploy_k8s_stop: &deploy_k8s_stop
@@ -353,6 +435,7 @@ deploy-k8s-review:
     on_stop: stop-k8s-review
     auto_stop_in: 1 week
     url: https://${CI_PROJECT_PATH_SLUG}-review.${KUBE_INGRESS_BASE_DOMAIN}/${CI_COMMIT_REF_SLUG}
+    deployment_tier: development
   variables:
     CI_REPLICAS_REVIEW: 1
     CI_APP_NAME: review/${CI_COMMIT_REF_NAME}
@@ -366,6 +449,7 @@ stop-k8s-review:
   environment:
     name: review/${CI_COMMIT_REF_NAME}
     action: stop
+    deployment_tier: development
 
 #
 # Deploy production
@@ -376,8 +460,8 @@ deploy-production:
   stage: deploy-production
   needs:
     - test
-    - audit-yarn
-    - audit-composer
+    - yarn audit
+    - composer audit
     - build-image
     - generate-assets
   dependencies:
@@ -385,6 +469,7 @@ deploy-production:
     - generate-assets
   environment:
     name: rsync-production
+    deployment_tier: production
   when: manual
   only:
     - main
@@ -404,8 +489,8 @@ deploy-k8s-production:
   stage: deploy-production
   needs:
     - release-image
-    - audit-yarn
-    - audit-composer
+    - yarn audit
+    - composer audit
   environment:
     name: production
     on_stop: stop-k8s-production

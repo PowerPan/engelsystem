@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Controllers\Admin;
 
+use Engelsystem\Config\GoodieType;
 use Engelsystem\Controllers\Admin\UserShirtController;
 use Engelsystem\Helpers\Authenticator;
 use Engelsystem\Http\Redirector;
@@ -22,9 +25,9 @@ class UserShirtControllerTest extends ControllerTest
      * @covers \Engelsystem\Controllers\Admin\UserShirtController::editShirt
      * @covers \Engelsystem\Controllers\Admin\UserShirtController::__construct
      */
-    public function testIndex()
+    public function testIndex(): void
     {
-        $request = $this->request->withAttribute('id', 1);
+        $request = $this->request->withAttribute('user_id', 1);
         /** @var Authenticator|MockObject $auth */
         $auth = $this->createMock(Authenticator::class);
         /** @var Redirector|MockObject $redirector */
@@ -42,7 +45,7 @@ class UserShirtControllerTest extends ControllerTest
     /**
      * @covers \Engelsystem\Controllers\Admin\UserShirtController::editShirt
      */
-    public function testIndexUserNotFound()
+    public function testIndexUserNotFound(): void
     {
         /** @var Authenticator|MockObject $auth */
         $auth = $this->createMock(Authenticator::class);
@@ -59,16 +62,17 @@ class UserShirtControllerTest extends ControllerTest
     /**
      * @covers \Engelsystem\Controllers\Admin\UserShirtController::saveShirt
      */
-    public function testSaveShirt()
+    public function testSaveShirt(): void
     {
+        $this->config->set('goodie_type', GoodieType::Tshirt->value);
         $request = $this->request
-            ->withAttribute('id', 1)
+            ->withAttribute('user_id', 1)
             ->withParsedBody([
                 'shirt_size' => 'S',
             ]);
         /** @var Authenticator|MockObject $auth */
         $auth = $this->createMock(Authenticator::class);
-        $this->config->set('tshirt_sizes', ['S' => 'Small']);
+        $this->config->set('tshirt_sizes', ['S' => 'Small', 'XS' => 'Extra Small']);
         /** @var Redirector|MockObject $redirector */
         $redirector = $this->createMock(Redirector::class);
         User::factory()
@@ -77,11 +81,11 @@ class UserShirtControllerTest extends ControllerTest
             ->create();
 
         $auth
-            ->expects($this->exactly(4))
+            ->expects($this->exactly(6))
             ->method('can')
             ->with('admin_arrive')
-            ->willReturnOnConsecutiveCalls(true, true, true, false);
-        $this->setExpects($redirector, 'back', null, $this->response, $this->exactly(4));
+            ->willReturnOnConsecutiveCalls(true, true, true, false, false, true);
+        $this->setExpects($redirector, 'back', null, $this->response, $this->exactly(6));
 
         $controller = new UserShirtController(
             $auth,
@@ -142,12 +146,34 @@ class UserShirtControllerTest extends ControllerTest
         $controller->saveShirt($request);
         $user = User::find(1);
         $this->assertFalse($user->state->arrived);
+
+        // Shirt disabled
+        $this->config->set('goodie_type', GoodieType::None->value);
+        $request = $request
+            ->withParsedBody([
+                'shirt_size' => 'XS',
+            ]);
+
+        $controller->saveShirt($request);
+        $user = User::find(1);
+        $this->assertEquals('S', $user->personalData->shirt_size);
+
+        // Shirt enabled
+        $this->config->set('goodie_type', GoodieType::Tshirt->value);
+        $request = $request
+            ->withParsedBody([
+                'shirt_size' => 'XS',
+            ]);
+
+        $controller->saveShirt($request);
+        $user = User::find(1);
+        $this->assertEquals('XS', $user->personalData->shirt_size);
     }
 
     /**
      * @covers \Engelsystem\Controllers\Admin\UserShirtController::saveShirt
      */
-    public function testSaveShirtUserNotFound()
+    public function testSaveShirtUserNotFound(): void
     {
         /** @var Authenticator|MockObject $auth */
         $auth = $this->createMock(Authenticator::class);

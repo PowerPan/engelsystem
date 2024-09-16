@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Controllers\Stub;
 
 use Carbon\Carbon;
@@ -13,8 +15,8 @@ use Illuminate\Database\Eloquent\Model;
  */
 class TestModel extends Model
 {
-    /** @var string[] */
-    protected $fillable = [
+    /** @var array<string> */
+    protected $fillable = [ // phpcs:ignore
         'text',
         'another_text',
     ];

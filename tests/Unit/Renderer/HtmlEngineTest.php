@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Renderer;
 
 use Engelsystem\Renderer\HtmlEngine;
@@ -8,12 +10,12 @@ use PHPUnit\Framework\TestCase;
 class HtmlEngineTest extends TestCase
 {
     /** @var string[] */
-    protected $tmpFileNames = [];
+    protected array $tmpFileNames = [];
 
     /**
      * @covers \Engelsystem\Renderer\HtmlEngine::get
      */
-    public function testGet()
+    public function testGet(): void
     {
         $engine = new HtmlEngine();
         $engine->share('shared_data', 'tester');
@@ -27,7 +29,7 @@ class HtmlEngineTest extends TestCase
     /**
      * @covers \Engelsystem\Renderer\HtmlEngine::canRender
      */
-    public function testCanRender()
+    public function testCanRender(): void
     {
         $engine = new HtmlEngine();
 
@@ -40,12 +42,7 @@ class HtmlEngineTest extends TestCase
         $this->assertTrue($engine->canRender($htmFile));
     }
 
-    /**
-     * @param string $content
-     * @param string $extension
-     * @return string
-     */
-    protected function createTempFile($content = '', $extension = '.html')
+    protected function createTempFile(string $content = '', string $extension = '.html'): string
     {
         $tmpFileName = tempnam(sys_get_temp_dir(), 'EngelsystemUnitTest');
 

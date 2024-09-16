@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Controllers;
 
 use Engelsystem\Test\Unit\Controllers\Stub\ControllerImplementation;
@@ -10,7 +12,7 @@ class BaseControllerTest extends TestCase
     /**
      * @covers \Engelsystem\Controllers\BaseController::getPermissions
      */
-    public function testGetPermissions()
+    public function testGetPermissions(): void
     {
         $controller = new ControllerImplementation();
 

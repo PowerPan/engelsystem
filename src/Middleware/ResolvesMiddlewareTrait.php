@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Middleware;
 
 use Engelsystem\Application;
@@ -11,12 +13,10 @@ trait ResolvesMiddlewareTrait
 {
     /**
      * Resolve the middleware with the container
-     *
-     * @param string|callable|MiddlewareInterface|RequestHandlerInterface $middleware
-     * @return MiddlewareInterface|RequestHandlerInterface
      */
-    protected function resolveMiddleware($middleware)
-    {
+    protected function resolveMiddleware(
+        string|callable|MiddlewareInterface|RequestHandlerInterface $middleware
+    ): MiddlewareInterface|RequestHandlerInterface {
         if ($this->isMiddleware($middleware)) {
             return $middleware;
         }
@@ -44,12 +44,9 @@ trait ResolvesMiddlewareTrait
     }
 
     /**
-     * Checks if the given object is a middleware or middleware or request handler
-     *
-     * @param mixed $middleware
-     * @return bool
+     * Checks if the given object is a middleware or request handler
      */
-    protected function isMiddleware($middleware)
+    protected function isMiddleware(mixed $middleware): bool
     {
         return ($middleware instanceof MiddlewareInterface || $middleware instanceof RequestHandlerInterface);
     }

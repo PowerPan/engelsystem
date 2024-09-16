@@ -2,7 +2,9 @@
 {% import 'macros/base.twig' as m %}
 {% import 'macros/form.twig' as f %}
 
-{% block title %}{{ __('user.edit.shirt') }}{% endblock %}
+{% block title %}
+    {{ is_tshirt ? __('user.edit.shirt') : __('user.edit.goodie') }}
+{% endblock %}
 
 {% block content %}
     <div class="container">
@@ -14,9 +16,11 @@
             {{ csrf() }}
 
             <div class="row">
-                <div class="col-md-6">
-                    {{ f.select('shirt_size', config('tshirt_sizes'), __('user.shirt_size'), userdata.personalData.shirt_size) }}
-                </div>
+                {% if is_tshirt %}
+                    <div class="col-md-6">
+                        {{ f.select('shirt_size', config('tshirt_sizes'), __('user.shirt_size'), userdata.personalData.shirt_size) }}
+                    </div>
+                {% endif %}
                 <div class="col-md-6">
                     {{ f.switch('arrived', __('user.arrived'), userdata.state.arrived, {'disabled': not has_permission_to('admin_arrive')}) }}
 
@@ -26,7 +30,7 @@
 
                     {{ f.switch('active', __('user.active'), userdata.state.active) }}
 
-                    {{ f.switch('got_shirt', __('user.got_shirt'), userdata.state.got_shirt) }}
+                    {{ f.switch('got_shirt', is_tshirt ? __('user.got_shirt') : __('user.got_goodie'), userdata.state.got_shirt) }}
                 </div>
                 <div class="col-md-12">
                     {{ f.submit(__('form.save')) }}

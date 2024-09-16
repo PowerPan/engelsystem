@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Http\Validation\Rules;
 
 use Engelsystem\Http\Validation\Rules\Max;
@@ -10,7 +12,7 @@ class MaxTest extends TestCase
     /**
      * @covers \Engelsystem\Http\Validation\Rules\Max
      */
-    public function testValidate()
+    public function testValidate(): void
     {
         $rule = new Max(3);
         $this->assertFalse($rule->validate(10));

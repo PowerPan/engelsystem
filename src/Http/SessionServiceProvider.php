@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Http;
 
 use Engelsystem\Config\Config;
@@ -14,7 +16,7 @@ use Symfony\Component\HttpFoundation\Session\Storage\SessionStorageInterface;
 
 class SessionServiceProvider extends ServiceProvider
 {
-    public function register()
+    public function register(): void
     {
         $sessionStorage = $this->getSessionStorage();
         $this->app->instance('session.storage', $sessionStorage);
@@ -38,10 +40,8 @@ class SessionServiceProvider extends ServiceProvider
 
     /**
      * Returns the session storage
-     *
-     * @return SessionStorageInterface
      */
-    protected function getSessionStorage()
+    protected function getSessionStorage(): SessionStorageInterface
     {
         if ($this->isCli()) {
             return $this->app->make(MockArraySessionStorage::class);
@@ -51,17 +51,16 @@ class SessionServiceProvider extends ServiceProvider
         $config = $this->app->get('config');
         $sessionConfig = $config->get('session');
 
-        $handler = null;
-        switch ($sessionConfig['driver']) {
-            case 'pdo':
-                $handler = $this->app->make(DatabaseHandler::class);
-                break;
-        }
+        $handler = match ($sessionConfig['driver']) {
+            'pdo'   => $this->app->make(DatabaseHandler::class),
+            default => null,
+        };
 
         return $this->app->make(NativeSessionStorage::class, [
             'options' => [
                 'cookie_httponly' => true,
                 'name'            => $sessionConfig['name'],
+                'cookie_lifetime' => (int) ($sessionConfig['lifetime'] * 24 * 60 * 60),
             ],
             'handler' => $handler,
         ]);
@@ -69,10 +68,8 @@ class SessionServiceProvider extends ServiceProvider
 
     /**
      * Test if is called from cli
-     *
-     * @return bool
      */
-    protected function isCli()
+    protected function isCli(): bool
     {
         return PHP_SAPI == 'cli' || PHP_SAPI == 'phpdbg';
     }

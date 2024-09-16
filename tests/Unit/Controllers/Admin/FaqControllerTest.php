@@ -1,19 +1,20 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Controllers\Admin;
 
 use Engelsystem\Controllers\Admin\FaqController;
+use Engelsystem\Controllers\NotificationType;
 use Engelsystem\Http\Exceptions\ValidationException;
 use Engelsystem\Http\Validation\Validator;
 use Engelsystem\Models\Faq;
 use Engelsystem\Test\Unit\Controllers\ControllerTest;
-use Illuminate\Support\Collection;
-use Symfony\Component\HttpFoundation\Session\Session;
 
 class FaqControllerTest extends ControllerTest
 {
     /** @var array */
-    protected $data = [
+    protected array $data = [
         'question' => 'Foo?',
         'text'     => 'Bar!',
     ];
@@ -23,18 +24,15 @@ class FaqControllerTest extends ControllerTest
      * @covers \Engelsystem\Controllers\Admin\FaqController::edit
      * @covers \Engelsystem\Controllers\Admin\FaqController::showEdit
      */
-    public function testEdit()
+    public function testEdit(): void
     {
-        $this->request->attributes->set('id', 1);
+        $this->request->attributes->set('faq_id', 1);
         $this->response->expects($this->once())
             ->method('withView')
             ->willReturnCallback(function ($view, $data) {
                 $this->assertEquals('pages/faq/edit.twig', $view);
 
-                /** @var Collection $warnings */
-                $warnings = $data['messages'];
                 $this->assertNotEmpty($data['faq']);
-                $this->assertTrue($warnings->isEmpty());
 
                 return $this->response;
             });
@@ -43,12 +41,13 @@ class FaqControllerTest extends ControllerTest
         $controller = $this->app->make(FaqController::class);
 
         $controller->edit($this->request);
+        $this->assertHasNoNotifications(NotificationType::WARNING);
     }
 
     /**
      * @covers \Engelsystem\Controllers\Admin\FaqController::save
      */
-    public function testSaveCreateInvalid()
+    public function testSaveCreateInvalid(): void
     {
         /** @var FaqController $controller */
         $this->expectException(ValidationException::class);
@@ -61,9 +60,9 @@ class FaqControllerTest extends ControllerTest
     /**
      * @covers       \Engelsystem\Controllers\Admin\FaqController::save
      */
-    public function testSaveCreateEdit()
+    public function testSaveCreateEdit(): void
     {
-        $this->request->attributes->set('id', 2);
+        $this->request->attributes->set('faq_id', 2);
         $body = $this->data;
 
         $this->request = $this->request->withParsedBody($body);
@@ -80,22 +79,18 @@ class FaqControllerTest extends ControllerTest
 
         $this->assertTrue($this->log->hasInfoThatContains('Updated'));
 
-        /** @var Session $session */
-        $session = $this->app->get('session');
-        $messages = $session->get('messages');
-        $this->assertEquals('faq.edit.success', $messages[0]);
-
         $faq = (new Faq())->find(2);
         $this->assertEquals('Foo?', $faq->question);
         $this->assertEquals('Bar!', $faq->text);
+        $this->assertHasNotification('faq.edit.success');
     }
 
     /**
      * @covers \Engelsystem\Controllers\Admin\FaqController::save
      */
-    public function testSavePreview()
+    public function testSavePreview(): void
     {
-        $this->request->attributes->set('id', 1);
+        $this->request->attributes->set('faq_id', 1);
         $this->request = $this->request->withParsedBody([
             'question' => 'New question',
             'text'     => 'New text',
@@ -130,9 +125,9 @@ class FaqControllerTest extends ControllerTest
     /**
      * @covers \Engelsystem\Controllers\Admin\FaqController::save
      */
-    public function testSaveDelete()
+    public function testSaveDelete(): void
     {
-        $this->request->attributes->set('id', 1);
+        $this->request->attributes->set('faq_id', 1);
         $this->request = $this->request->withParsedBody([
             'question' => '.',
             'text'     => '.',
@@ -151,10 +146,7 @@ class FaqControllerTest extends ControllerTest
 
         $this->assertTrue($this->log->hasInfoThatContains('Deleted'));
 
-        /** @var Session $session */
-        $session = $this->app->get('session');
-        $messages = $session->get('messages');
-        $this->assertEquals('faq.delete.success', $messages[0]);
+        $this->assertHasNotification('faq.delete.success');
     }
 
     /**

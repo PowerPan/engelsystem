@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Database\Factories\Engelsystem\Models\User;
 
 use Engelsystem\Models\User\User;
@@ -8,18 +10,15 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 class UserFactory extends Factory
 {
     /** @var string */
-    protected $model = User::class;
+    protected $model = User::class; // phpcs:ignore
 
-    /**
-     * @return array
-     */
-    public function definition()
+    public function definition(): array
     {
         return [
             'name'     => $this->faker->unique()->userName(),
-            'password' => password_hash($this->faker->password(), PASSWORD_DEFAULT),
+            'password' => crypt(random_bytes(16), '$1$salt$'),
             'email'    => $this->faker->unique()->safeEmail(),
-            'api_key'  => md5($this->faker->unique()->password()),
+            'api_key'  => bin2hex(random_bytes(32)),
         ];
     }
 }

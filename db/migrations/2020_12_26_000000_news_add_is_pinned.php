@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Migrations;
 
 use Engelsystem\Database\Migration\Migration;
@@ -12,26 +14,20 @@ class NewsAddIsPinned extends Migration
     /**
      * Run the migration
      */
-    public function up()
+    public function up(): void
     {
-        $this->schema->table(
-            'news',
-            function (Blueprint $table) {
-                $table->boolean('is_pinned')->default(false)->after('is_meeting');
-            }
-        );
+        $this->schema->table('news', function (Blueprint $table): void {
+            $table->boolean('is_pinned')->default(false)->after('is_meeting');
+        });
     }
 
     /**
      * Reverse the migration
      */
-    public function down()
+    public function down(): void
     {
-        $this->schema->table(
-            'news',
-            function (Blueprint $table) {
-                $table->dropColumn('is_pinned');
-            }
-        );
+        $this->schema->table('news', function (Blueprint $table): void {
+            $table->dropColumn('is_pinned');
+        });
     }
 }

@@ -26,8 +26,10 @@ _vimrc_local.vim
 
 # Project files
 /config/config.php
-/test/coverage
+/config/lang/
+/public/*.xml
 /public/coverage
+/test/coverage
 /coverage
 /unittests.xml
 /resources/lang/*/*.mo
@@ -40,3 +42,4 @@ _vimrc_local.vim
 /public/assets
 /package-lock.json
 /yarn-error.log
+/.yarn-cache

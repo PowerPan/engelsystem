@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Renderer\Twig\Extensions;
 
 use Engelsystem\Helpers\Translation\Translator;
@@ -12,7 +14,7 @@ class TranslationTest extends ExtensionTest
      * @covers \Engelsystem\Renderer\Twig\Extensions\Translation::__construct
      * @covers \Engelsystem\Renderer\Twig\Extensions\Translation::getFilters
      */
-    public function testGeFilters()
+    public function testGeFilters(): void
     {
         /** @var Translator|MockObject $translator */
         $translator = $this->createMock(Translator::class);
@@ -26,7 +28,7 @@ class TranslationTest extends ExtensionTest
     /**
      * @covers \Engelsystem\Renderer\Twig\Extensions\Translation::getFunctions
      */
-    public function testGetFunctions()
+    public function testGetFunctions(): void
     {
         /** @var Translator|MockObject $translator */
         $translator = $this->createMock(Translator::class);

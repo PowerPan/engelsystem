@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Events\Listener;
 
+use Engelsystem\Config\Config;
 use Engelsystem\Events\Listener\News;
 use Engelsystem\Mail\EngelsystemMailer;
 use Engelsystem\Models\News as NewsModel;
@@ -18,29 +21,27 @@ class NewsTest extends TestCase
 {
     use HasDatabase;
 
-    /** @var TestLogger */
-    protected $log;
+    protected TestLogger $log;
 
-    /** @var EngelsystemMailer|MockObject */
-    protected $mailer;
+    protected EngelsystemMailer|MockObject $mailer;
 
-    /** @var User */
-    protected $user;
+    protected User $user;
 
     /**
      * @covers \Engelsystem\Events\Listener\News::created
      * @covers \Engelsystem\Events\Listener\News::__construct
      * @covers \Engelsystem\Events\Listener\News::sendMail
      */
-    public function testCreated()
+    public function testCreated(): void
     {
+        $this->app->instance('config', new Config());
         /** @var NewsModel $news */
         $news = NewsModel::factory(['title' => 'Foo'])->create();
 
         $i = 0;
         $this->mailer->expects($this->exactly(2))
             ->method('sendViewTranslated')
-            ->willReturnCallback(function (User $user, string $subject, string $template, array $data) use (&$i) {
+            ->willReturnCallback(function (User $user, string $subject, string $template, array $data) use (&$i): void {
                 $this->assertEquals(1, $user->id);
                 $this->assertEquals('notification.news.new', $subject);
                 $this->assertEquals('emails/news-new', $template);

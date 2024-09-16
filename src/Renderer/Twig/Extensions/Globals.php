@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Renderer\Twig\Extensions;
 
 use Engelsystem\Helpers\Authenticator;
@@ -11,26 +13,12 @@ use function array_key_exists;
 
 class Globals extends TwigExtension implements GlobalsInterface
 {
-    /** @var Authenticator */
-    protected $auth;
-
-    /** @var Request */
-    protected $request;
-
-    /**
-     * @param Authenticator $auth
-     * @param Request       $request
-     */
-    public function __construct(Authenticator $auth, Request $request)
+    public function __construct(protected Authenticator $auth, protected Request $request)
     {
-        $this->auth = $auth;
-        $this->request = $request;
     }
 
     /**
      * Returns a list of global variables to add to the existing list.
-     *
-     * @return array An array of global variables
      */
     public function getGlobals(): array
     {
@@ -49,8 +37,8 @@ class Globals extends TwigExtension implements GlobalsInterface
         }
 
         $query = $this->request->query->get('theme');
-        if (!is_null($query) && isset($themes[(int)$query])) {
-            $themeId = (int)$query;
+        if (!is_null($query) && isset($themes[(int) $query])) {
+            $themeId = (int) $query;
         }
 
         if (array_key_exists($themeId, $themes) === false) {

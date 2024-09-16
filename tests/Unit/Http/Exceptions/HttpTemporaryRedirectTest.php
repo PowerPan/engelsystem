@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Http\Exceptions;
 
 use Engelsystem\Http\Exceptions\HttpRedirect;
@@ -11,7 +13,7 @@ class HttpTemporaryRedirectTest extends TestCase
     /**
      * @covers \Engelsystem\Http\Exceptions\HttpTemporaryRedirect::__construct
      */
-    public function testConstruct()
+    public function testConstruct(): void
     {
         $exception = new HttpTemporaryRedirect('https://lorem.ipsum/foo/bar');
         $this->assertInstanceOf(HttpRedirect::class, $exception);

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Controllers\Admin;
 
 use Carbon\Carbon;
@@ -16,51 +18,21 @@ class QuestionsController extends BaseController
 {
     use HasUserNotifications;
 
-    /** @var Authenticator */
-    protected $auth;
-
-    /** @var LoggerInterface */
-    protected $log;
-
-    /** @var Question */
-    protected $question;
-
-    /** @var Redirector */
-    protected $redirect;
-
-    /** @var Response */
-    protected $response;
-
-    /** @var array */
-    protected $permissions = [
+    /** @var array<string> */
+    protected array $permissions = [
         'question.add',
         'question.edit',
     ];
 
-    /**
-     * @param Authenticator   $auth
-     * @param LoggerInterface $log
-     * @param Question        $question
-     * @param Redirector      $redirector
-     * @param Response        $response
-     */
     public function __construct(
-        Authenticator $auth,
-        LoggerInterface $log,
-        Question $question,
-        Redirector $redirector,
-        Response $response
+        protected Authenticator $auth,
+        protected LoggerInterface $log,
+        protected Question $question,
+        protected Redirector $redirect,
+        protected Response $response
     ) {
-        $this->auth = $auth;
-        $this->log = $log;
-        $this->question = $question;
-        $this->redirect = $redirector;
-        $this->response = $response;
     }
 
-    /**
-     * @return Response
-     */
     public function index(): Response
     {
         $questions = $this->question
@@ -70,15 +42,10 @@ class QuestionsController extends BaseController
 
         return $this->response->withView(
             'pages/questions/overview.twig',
-            ['questions' => $questions, 'is_admin' => true] + $this->getNotifications()
+            ['questions' => $questions, 'is_admin' => true]
         );
     }
 
-    /**
-     * @param Request $request
-     *
-     * @return Response
-     */
     public function delete(Request $request): Response
     {
         $data = $this->validate($request, [
@@ -95,29 +62,21 @@ class QuestionsController extends BaseController
         return $this->redirect->to('/admin/questions');
     }
 
-    /**
-     * @param Request $request
-     *
-     * @return Response
-     */
     public function edit(Request $request): Response
     {
-        $id = $request->getAttribute('id');
-        $questions = $this->question->find($id);
+        $questionId = (int) $request->getAttribute('question_id');
+
+        $questions = $this->question->find($questionId);
 
         return $this->showEdit($questions);
     }
 
-    /**
-     * @param Request $request
-     *
-     * @return Response
-     */
     public function save(Request $request): Response
     {
-        $id = $request->getAttribute('id');
+        $questionId = (int) $request->getAttribute('question_id');
+
         /** @var Question $question */
-        $question = $this->question->findOrNew($id);
+        $question = $this->question->findOrNew($questionId);
 
         $data = $this->validate($request, [
             'text'    => 'required',
@@ -157,16 +116,11 @@ class QuestionsController extends BaseController
         return $this->redirect->to('/admin/questions');
     }
 
-    /**
-     * @param Question|null $question
-     *
-     * @return Response
-     */
     protected function showEdit(?Question $question): Response
     {
         return $this->response->withView(
             'pages/questions/edit.twig',
-            ['question' => $question, 'is_admin' => true] + $this->getNotifications()
+            ['question' => $question, 'is_admin' => true]
         );
     }
 }

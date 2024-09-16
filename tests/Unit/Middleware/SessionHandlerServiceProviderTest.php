@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Middleware;
 
 use Engelsystem\Middleware\SessionHandler;
@@ -13,7 +15,7 @@ class SessionHandlerServiceProviderTest extends ServiceProviderTest
     /**
      * @covers \Engelsystem\Middleware\SessionHandlerServiceProvider::register()
      */
-    public function testRegister()
+    public function testRegister(): void
     {
         /** @var ContextualBindingBuilder|MockObject $bindingBuilder */
         $bindingBuilder = $this->createMock(ContextualBindingBuilder::class);
@@ -31,7 +33,7 @@ class SessionHandlerServiceProviderTest extends ServiceProviderTest
 
         $bindingBuilder->expects($this->once())
             ->method('give')
-            ->willReturnCallback(function (callable $callable) {
+            ->willReturnCallback(function (callable $callable): void {
                 $paths = $callable();
 
                 $this->assertIsArray($paths);

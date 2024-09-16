@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Migrations;
 
 use Engelsystem\Database\Migration\Migration;
@@ -13,9 +15,9 @@ class IncreaseTshirtFieldWidth extends Migration
     /**
      * Run the migration
      */
-    public function up()
+    public function up(): void
     {
-        $this->schema->table('users_personal_data', function (Blueprint $table) {
+        $this->schema->table('users_personal_data', function (Blueprint $table): void {
             $table->string('shirt_size', 10)->change();
         });
     }
@@ -23,9 +25,9 @@ class IncreaseTshirtFieldWidth extends Migration
     /**
      * Reverse the migration
      */
-    public function down()
+    public function down(): void
     {
-        $this->schema->table('users_personal_data', function (Blueprint $table) {
+        $this->schema->table('users_personal_data', function (Blueprint $table): void {
             $table->string('shirt_size', 4)->change();
         });
     }

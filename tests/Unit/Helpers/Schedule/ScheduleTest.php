@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Helpers\Schedule;
 
 use Carbon\Carbon;
@@ -20,7 +22,7 @@ class ScheduleTest extends TestCase
      * @covers \Engelsystem\Helpers\Schedule\Schedule::getConference
      * @covers \Engelsystem\Helpers\Schedule\Schedule::getDay
      */
-    public function testCreate()
+    public function testCreate(): void
     {
         $conference = new Conference('Foo Bar', 'FooB');
         $days = [$this->createMock(Day::class)];
@@ -34,7 +36,7 @@ class ScheduleTest extends TestCase
     /**
      * @covers \Engelsystem\Helpers\Schedule\Schedule::getRooms
      */
-    public function testGetRooms()
+    public function testGetRooms(): void
     {
         $conference = new Conference('Test', 'T');
         $room1 = new Room('Test 1');
@@ -68,7 +70,7 @@ class ScheduleTest extends TestCase
      * @covers \Engelsystem\Helpers\Schedule\Schedule::getStartDateTime
      * @covers \Engelsystem\Helpers\Schedule\Schedule::getEndDateTime
      */
-    public function testGetDateTimes()
+    public function testGetDateTimes(): void
     {
         $conference = new Conference('Some Conference', 'SC');
         $days = [

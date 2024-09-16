@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Logger;
 
 use Engelsystem\Helpers\Authenticator;
@@ -16,7 +18,7 @@ class UserAwareLoggerTest extends ServiceProviderTest
      * @covers \Engelsystem\Logger\UserAwareLogger::log
      * @covers \Engelsystem\Logger\UserAwareLogger::setAuth
      */
-    public function testLog()
+    public function testLog(): void
     {
         $user = User::factory(['id' => 1, 'name' => 'admin'])->make();
 

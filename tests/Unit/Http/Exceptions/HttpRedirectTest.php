@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Http\Exceptions;
 
 use DMS\PHPUnitExtensions\ArraySubset\ArraySubsetAsserts;
@@ -13,7 +15,7 @@ class HttpRedirectTest extends TestCase
     /**
      * @covers \Engelsystem\Http\Exceptions\HttpRedirect::__construct
      */
-    public function testConstruct()
+    public function testConstruct(): void
     {
         $exception = new HttpRedirect('https://lorem.ipsum/foo/bar');
         $this->assertEquals(302, $exception->getStatusCode());

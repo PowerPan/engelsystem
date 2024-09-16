@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Http;
 
 use Engelsystem\Http\Redirector;
@@ -15,7 +17,7 @@ class RedirectorTest extends TestCase
      * @covers \Engelsystem\Http\Redirector::__construct
      * @covers \Engelsystem\Http\Redirector::to
      */
-    public function testTo()
+    public function testTo(): void
     {
         $request = new Request();
         $response = new Response();
@@ -37,7 +39,7 @@ class RedirectorTest extends TestCase
      * @covers \Engelsystem\Http\Redirector::back
      * @covers \Engelsystem\Http\Redirector::getPreviousUrl
      */
-    public function testBack()
+    public function testBack(): void
     {
         $request = new Request();
         $response = new Response();
@@ -56,10 +58,7 @@ class RedirectorTest extends TestCase
         $this->assertEquals(['bar'], $return->getHeader('foo'));
     }
 
-    /**
-     * @return UrlGeneratorInterface|MockObject
-     */
-    protected function getUrlGenerator()
+    protected function getUrlGenerator(): UrlGeneratorInterface|MockObject
     {
         /** @var UrlGeneratorInterface|MockObject $url */
         $url = $this->getMockForAbstractClass(UrlGeneratorInterface::class);
@@ -72,11 +71,8 @@ class RedirectorTest extends TestCase
 
     /**
      * Returns the provided path
-     *
-     * @param string $path
-     * @return string
      */
-    public function returnPath(string $path)
+    public function returnPath(string $path): string
     {
         return $path;
     }

@@ -1,6 +1,9 @@
 <?php
 
+use Engelsystem\Models\AngelType;
+use Engelsystem\Models\News;
 use Engelsystem\Models\Room;
+use Engelsystem\Models\Shifts\Shift;
 use Engelsystem\ShiftsFilter;
 
 /**
@@ -22,7 +25,7 @@ function public_dashboard_controller()
         }
 
         $angelTypes = collect(unrestricted_angeltypes());
-        $rooms = $requestRooms ?: Rooms()->pluck('id')->toArray();
+        $rooms = $requestRooms ?: Room::orderBy('name')->get()->pluck('id')->toArray();
         $angelTypes = $requestAngelTypes ?: $angelTypes->pluck('id')->toArray();
         $filterValues = [
             'userShiftsAdmin' => false,
@@ -41,53 +44,57 @@ function public_dashboard_controller()
         'needed-3-hours' => stats_angels_needed_three_hours($filter),
         'needed-night'   => stats_angels_needed_for_nightshifts($filter),
         'angels-working' => stats_currently_working($filter),
-        'hours-to-work'  => stats_hours_to_work($filter)
+        'hours-to-work'  => stats_hours_to_work($filter),
     ];
 
     $free_shifts_source = Shifts_free(time(), time() + 12 * 60 * 60, $filter);
     $free_shifts = [];
     foreach ($free_shifts_source as $shift) {
+        $shift = Shift($shift);
         $free_shift = public_dashboard_controller_free_shift($shift, $filter);
         if (count($free_shift['needed_angels']) > 0) {
             $free_shifts[] = $free_shift;
         }
     }
 
+    $important_news = News::whereIsImportant(true)
+        ->orderBy('updated_at')
+        ->limit(1)
+        ->get();
+
     return [
         __('Public Dashboard'),
-        public_dashboard_view($stats, $free_shifts)
+        public_dashboard_view($stats, $free_shifts, $important_news),
     ];
 }
 
 /**
  * Gathers information for free shifts to display.
  *
- * @param array             $shift
+ * @param Shift             $shift
  * @param ShiftsFilter|null $filter
  *
  * @return array
  */
-function public_dashboard_controller_free_shift($shift, ShiftsFilter $filter = null)
+function public_dashboard_controller_free_shift(Shift $shift, ShiftsFilter $filter = null)
 {
-    $shifttype = ShiftType($shift['shifttype_id']);
-    $room = Room::find($shift['RID']);
-
+    // ToDo move to model and return one
     $free_shift = [
-        'SID'            => $shift['SID'],
+        'id'             => $shift->id,
         'style'          => 'default',
-        'start'          => date('H:i', $shift['start']),
-        'end'            => date('H:i', $shift['end']),
-        'duration'       => round(($shift['end'] - $shift['start']) / 3600),
-        'shifttype_name' => $shifttype['name'],
-        'title'          => $shift['title'],
-        'room_name'      => $room->name,
-        'needed_angels'  => public_dashboard_needed_angels($shift['NeedAngels'], $filter),
+        'start'          => $shift->start->format('H:i'),
+        'end'            => $shift->end->format('H:i'),
+        'duration'       => round(($shift->end->timestamp - $shift->start->timestamp) / 3600),
+        'shifttype_name' => $shift->shiftType->name,
+        'title'          => $shift->title,
+        'room_name'      => $shift->room->name,
+        'needed_angels'  => public_dashboard_needed_angels($shift->neededAngels, $filter),
     ];
 
-    if (time() + 3 * 60 * 60 > $shift['start']) {
+    if (time() + 3 * 60 * 60 > $shift->start->timestamp) {
         $free_shift['style'] = 'warning';
     }
-    if (time() > $shift['start']) {
+    if (time() > $shift->start->timestamp) {
         $free_shift['style'] = 'danger';
     }
 
@@ -107,12 +114,12 @@ function public_dashboard_needed_angels($needed_angels, ShiftsFilter $filter = n
     $result = [];
     foreach ($needed_angels as $needed_angel) {
         $need = $needed_angel['count'] - $needed_angel['taken'];
-        if ($need > 0 && (!$filter || in_array($needed_angel['TID'], $filter->getTypes()))) {
-            $angeltype = AngelType($needed_angel['TID']);
-            if ($angeltype['show_on_dashboard']) {
+        if ($need > 0 && (!$filter || in_array($needed_angel['angel_type_id'], $filter->getTypes()))) {
+            $angeltype = AngelType::find($needed_angel['angel_type_id']);
+            if ($angeltype->show_on_dashboard) {
                 $result[] = [
                     'need'           => $need,
-                    'angeltype_name' => $angeltype['name']
+                    'angeltype_name' => $angeltype->name,
                 ];
             }
         }

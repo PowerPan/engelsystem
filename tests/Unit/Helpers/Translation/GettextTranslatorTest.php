@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Helpers\Translation;
 
 use Engelsystem\Helpers\Translation\GettextTranslator;
@@ -13,7 +15,7 @@ class GettextTranslatorTest extends ServiceProviderTest
     /**
      * @covers \Engelsystem\Helpers\Translation\GettextTranslator::assertHasTranslation()
      */
-    public function testNoTranslation()
+    public function testNoTranslation(): void
     {
         $translations = $this->getTranslations();
         $translator = GettextTranslator::createFromTranslations($translations);
@@ -29,7 +31,7 @@ class GettextTranslatorTest extends ServiceProviderTest
     /**
      * @covers \Engelsystem\Helpers\Translation\GettextTranslator::translate()
      */
-    public function testTranslate()
+    public function testTranslate(): void
     {
         $translations = $this->getTranslations();
         $translator = GettextTranslator::createFromTranslations($translations);
@@ -40,7 +42,7 @@ class GettextTranslatorTest extends ServiceProviderTest
     /**
      * @covers \Engelsystem\Helpers\Translation\GettextTranslator::translatePlural
      */
-    public function testTranslatePlural()
+    public function testTranslatePlural(): void
     {
         $translations = $this->getTranslations();
         $translator = GettextTranslator::createFromTranslations($translations);
@@ -48,9 +50,6 @@ class GettextTranslatorTest extends ServiceProviderTest
         $this->assertEquals('Translations!', $translator->ngettext('test.value', 'test.value', 2));
     }
 
-    /**
-     * @return Translations
-     */
     protected function getTranslations(): Translations
     {
         $translation = Translation::create(null, 'test.value')

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Middleware\Stub;
 
 use Exception;
@@ -9,19 +11,13 @@ use Psr\Http\Server\RequestHandlerInterface;
 
 class ReturnResponseMiddlewareHandler implements RequestHandlerInterface
 {
-    /** @var ResponseInterface */
-    protected $response;
-
-    public function __construct(ResponseInterface $response)
+    public function __construct(protected ResponseInterface $response)
     {
-        $this->response = $response;
     }
 
     /**
      * Returns a given response
      *
-     * @param ServerRequestInterface $request
-     * @return ResponseInterface
      * @throws Exception
      */
     public function handle(ServerRequestInterface $request): ResponseInterface
@@ -31,10 +27,8 @@ class ReturnResponseMiddlewareHandler implements RequestHandlerInterface
 
     /**
      * Set the response
-     *
-     * @param ResponseInterface $response
      */
-    public function setResponse(ResponseInterface $response)
+    public function setResponse(ResponseInterface $response): void
     {
         $this->response = $response;
     }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Mail;
 
 use Engelsystem\Config\Config;
@@ -15,7 +17,7 @@ use Symfony\Component\Mailer\Mailer as SymfonyMailer;
 
 class MailerServiceProvider extends ServiceProvider
 {
-    public function register()
+    public function register(): void
     {
         /** @var Config $config */
         $config = $this->app->get('config');
@@ -44,31 +46,20 @@ class MailerServiceProvider extends ServiceProvider
         $this->app->instance('mailer', $mailer);
     }
 
-    /**
-     * @param string $transport
-     * @param array  $config
-     * @return TransportInterface
-     */
-    protected function getTransport($transport, $config)
+    protected function getTransport(?string $transport, array $config): TransportInterface
     {
-        switch ($transport) {
-            case 'log':
-                return $this->app->make(LogTransport::class);
-            case 'mail':
-            case 'sendmail':
-                return $this->app->make(SendmailTransport::class, ['command' => $config['sendmail'] ?? null]);
-            case 'smtp':
-                return $this->getSmtpTransport($config);
-            default:
-                return Transport::fromDsn($transport ?? '');
-        }
+        return match ($transport) {
+            'log'              => $this->app->make(LogTransport::class),
+            'mail', 'sendmail' => $this->app->make(
+                SendmailTransport::class,
+                ['command' => $config['sendmail'] ?? null]
+            ),
+            'smtp'             => $this->getSmtpTransport($config),
+            default            => Transport::fromDsn($transport ?? ''),
+        };
     }
 
-    /**
-     * @param array $config
-     * @return SmtpTransport
-     */
-    protected function getSmtpTransport(array $config)
+    protected function getSmtpTransport(array $config): SmtpTransport
     {
         /** @var EsmtpTransport $transport */
         $transport = $this->app->make(EsmtpTransport::class, [

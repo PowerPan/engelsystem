@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Helpers\Stub;
 
 use Engelsystem\Models\User\User;
@@ -9,21 +11,13 @@ use InvalidArgumentException;
 
 class UserModelImplementation extends User
 {
-    /** @var User */
-    public static $user = null;
+    public static ?User $user = null;
 
-    /** @var int */
-    public static $id = null;
+    public static ?int $id = null;
 
-    /** @var int */
-    public static $apiKey = null;
+    public static ?string $apiKey = null;
 
-    /**
-     * @param mixed $id
-     * @param array $columns
-     * @return User|null
-     */
-    public function find($id, $columns = ['*'])
+    public function find(mixed $id, array $columns = ['*']): ?User
     {
         if ($id != static::$id) {
             throw new InvalidArgumentException('Wrong user ID searched');
@@ -33,10 +27,9 @@ class UserModelImplementation extends User
     }
 
     /**
-     * @param string $apiKey
      * @return User[]|Collection|QueryBuilder
      */
-    public static function whereApiKey($apiKey)
+    public static function whereApiKey(string $apiKey): array|Collection|QueryBuilder
     {
         if ($apiKey != static::$apiKey) {
             throw new InvalidArgumentException('Wrong api key searched');

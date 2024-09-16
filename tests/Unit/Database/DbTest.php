@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Database;
 
 use Engelsystem\Database\Db;
@@ -15,7 +17,7 @@ class DbTest extends TestCase
      * @covers \Engelsystem\Database\Db::connection()
      * @covers \Engelsystem\Database\Db::setDbManager()
      */
-    public function testSetDbManager()
+    public function testSetDbManager(): void
     {
         /** @var PDO|MockObject $pdo */
         $pdo = $this->getMockBuilder(PDO::class)
@@ -47,7 +49,7 @@ class DbTest extends TestCase
     /**
      * @covers \Engelsystem\Database\Db::select()
      */
-    public function testSelect()
+    public function testSelect(): void
     {
         $return = Db::select('SELECT * FROM test_data');
         $this->assertTrue(count($return) > 3);
@@ -59,7 +61,7 @@ class DbTest extends TestCase
     /**
      * @covers \Engelsystem\Database\Db::selectOne()
      */
-    public function testSelectOne()
+    public function testSelectOne(): void
     {
         $return = Db::selectOne('SELECT * FROM test_data');
         $this->assertEquals('Foo', $return['data']);
@@ -75,7 +77,7 @@ class DbTest extends TestCase
     /**
      * @covers \Engelsystem\Database\Db::insert()
      */
-    public function testInsert()
+    public function testInsert(): void
     {
         $result = Db::insert("INSERT INTO test_data (id, data) VALUES (5, 'Some random text'), (6, 'another text')");
         $this->assertTrue($result);
@@ -84,7 +86,7 @@ class DbTest extends TestCase
     /**
      * @covers \Engelsystem\Database\Db::update()
      */
-    public function testUpdate()
+    public function testUpdate(): void
     {
         $count = Db::update("UPDATE test_data SET data='NOPE' WHERE data LIKE '%Replaceme%'");
         $this->assertEquals(3, $count);
@@ -96,7 +98,7 @@ class DbTest extends TestCase
     /**
      * @covers \Engelsystem\Database\Db::delete()
      */
-    public function testDelete()
+    public function testDelete(): void
     {
         $count = Db::delete('DELETE FROM test_data WHERE id=1');
         $this->assertEquals(1, $count);
@@ -108,7 +110,7 @@ class DbTest extends TestCase
     /**
      * @covers \Engelsystem\Database\Db::getPdo()
      */
-    public function testGetPdo()
+    public function testGetPdo(): void
     {
         $pdo = Db::getPdo();
         $this->assertInstanceOf(PDO::class, $pdo);

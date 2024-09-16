@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Middleware;
 
 use DMS\PHPUnitExtensions\ArraySubset\ArraySubsetAsserts;
@@ -19,7 +21,7 @@ class AddHeadersTest extends TestCase
      * @covers \Engelsystem\Middleware\AddHeaders::__construct
      * @covers \Engelsystem\Middleware\AddHeaders::process
      */
-    public function testRegister()
+    public function testRegister(): void
     {
         /** @var ServerRequestInterface|MockObject $request */
         $request = $this->getMockForAbstractClass(ServerRequestInterface::class);

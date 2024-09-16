@@ -1,9 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Helpers;
 
 use Carbon\CarbonTimeZone;
 use Engelsystem\Config\Config;
+use Engelsystem\Environment;
 use Engelsystem\Exceptions\Handler;
 use Engelsystem\Helpers\ConfigureEnvironmentServiceProvider;
 use Engelsystem\Test\Unit\ServiceProviderTest;
@@ -15,7 +18,7 @@ class ConfigureEnvironmentServiceProviderTest extends ServiceProviderTest
      * @covers \Engelsystem\Helpers\ConfigureEnvironmentServiceProvider::register
      * @covers \Engelsystem\Helpers\ConfigureEnvironmentServiceProvider::setupDevErrorHandler
      */
-    public function testRegister()
+    public function testRegister(): void
     {
         $config = new Config(['timezone' => 'Australia/Eucla', 'environment' => 'production']);
         $this->app->instance('config', $config);
@@ -31,7 +34,7 @@ class ConfigureEnvironmentServiceProviderTest extends ServiceProviderTest
 
         $serviceProvider->expects($this->exactly(2))
             ->method('setTimeZone')
-            ->willReturnCallback(function (CarbonTimeZone $timeZone) {
+            ->willReturnCallback(function (CarbonTimeZone $timeZone): void {
                 $this->assertEquals('Australia/Eucla', $timeZone->getName());
             });
         $serviceProvider->expects($this->exactly(3))
@@ -42,10 +45,10 @@ class ConfigureEnvironmentServiceProviderTest extends ServiceProviderTest
             ->with(E_ALL);
 
         $serviceProvider->register();
-        $this->assertNotEquals(Handler::ENV_DEVELOPMENT, $handler->getEnvironment());
+        $this->assertNotEquals(Environment::DEVELOPMENT, $handler->getEnvironment());
 
         $config->set('environment', 'development');
         $serviceProvider->register();
-        $this->assertEquals(Handler::ENV_DEVELOPMENT, $handler->getEnvironment());
+        $this->assertEquals(Environment::DEVELOPMENT, $handler->getEnvironment());
     }
 }

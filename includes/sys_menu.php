@@ -1,6 +1,7 @@
 <?php
 
 use Engelsystem\Models\Question;
+use Engelsystem\Models\Room;
 use Engelsystem\UserHintsRenderer;
 
 /**
@@ -23,9 +24,9 @@ function header_render_hints()
 {
     $user = auth()->user();
 
-    $hints_renderer = new UserHintsRenderer();
-
     if ($user) {
+        $hints_renderer = new UserHintsRenderer();
+
         $hints_renderer->addHint(admin_new_questions());
         $hints_renderer->addHint(user_angeltypes_unconfirmed_hint());
         $hints_renderer->addHint(render_user_departure_date_hint());
@@ -36,9 +37,11 @@ function header_render_hints()
         $hints_renderer->addHint(render_user_arrived_hint(), true);
         $hints_renderer->addHint(render_user_tshirt_hint(), true);
         $hints_renderer->addHint(render_user_dect_hint(), true);
+
+        return $hints_renderer->render();
     }
 
-    return $hints_renderer->render();
+    return '';
 }
 
 /**
@@ -49,39 +52,6 @@ function header_render_hints()
 function current_page()
 {
     return request()->query->get('p') ?: str_replace('-', '_', request()->path());
-}
-
-/**
- * @return array
- */
-function make_user_submenu()
-{
-    $page = current_page();
-    $user_submenu = make_language_select();
-
-    if (auth()->can('user_settings') || auth()->can('logout')) {
-        $user_submenu[] = toolbar_dropdown_item_divider();
-    }
-
-    if (auth()->can('user_settings')) {
-        $user_submenu[] = toolbar_dropdown_item(
-            page_link_to('user_settings'),
-            __('Settings'),
-            $page == 'user_settings',
-            'gear'
-        );
-    }
-
-    if (auth()->can('logout')) {
-        $user_submenu[] = toolbar_dropdown_item(
-            page_link_to('logout'),
-            __('Logout'),
-            $page == 'logout',
-            'box-arrow-left',
-        );
-    }
-
-    return $user_submenu;
 }
 
 /**
@@ -104,7 +74,7 @@ function make_navigation()
             continue;
         }
 
-        $title = ((array)$options)[0];
+        $title = ((array) $options)[0];
         $menu[] = toolbar_item_link(page_link_to($menu_page), '', $title, $menu_page == $page);
     }
 
@@ -121,7 +91,7 @@ function make_navigation()
         'admin/questions'    => ['Answer questions', 'question.edit'],
         'shifttypes'         => 'Shifttypes',
         'admin_shifts'       => 'Create shifts',
-        'admin_rooms'        => 'Rooms',
+        'admin/rooms'        => ['room.rooms', 'admin_rooms'],
         'admin_groups'       => 'Grouprights',
         'admin/schedule'     => ['schedule.import', 'schedule.import'],
         'admin/logs'         => ['log.log', 'admin_log'],
@@ -137,7 +107,7 @@ function make_navigation()
             continue;
         }
 
-        $title = ((array)$options)[0];
+        $title = ((array) $options)[0];
         $admin_menu[] = toolbar_dropdown_item(
             page_link_to($menu_page),
             __($title),
@@ -146,10 +116,10 @@ function make_navigation()
     }
 
     if (count($admin_menu) > 0) {
-        $menu[] = toolbar_dropdown('', __('Admin'), $admin_menu);
+        $menu[] = toolbar_dropdown(__('Admin'), $admin_menu);
     }
 
-    return '<ul class="navbar-nav mb-2 mb-lg-0">' . join("\n", $menu) . '</ul>';
+    return join("\n", $menu);
 }
 
 /**
@@ -160,7 +130,7 @@ function make_navigation()
  */
 function menu_is_allowed(string $page, $options)
 {
-    $options = (array)$options;
+    $options = (array) $options;
     $permissions = $page;
 
     if (isset($options[1])) {
@@ -183,19 +153,19 @@ function make_room_navigation($menu)
     }
 
     // Get a list of all rooms
-    $rooms = Rooms();
+    $rooms = Room::orderBy('name')->get();
     $room_menu = [];
     if (auth()->can('admin_rooms')) {
-        $room_menu[] = toolbar_dropdown_item(page_link_to('admin_rooms'), __('Manage rooms'), false, 'list');
+        $room_menu[] = toolbar_dropdown_item(page_link_to('admin/rooms'), __('Manage rooms'), false, 'list');
     }
     if (count($room_menu) > 0) {
         $room_menu[] = toolbar_dropdown_item_divider();
     }
     foreach ($rooms as $room) {
-        $room_menu[] = toolbar_dropdown_item(room_link($room), $room->name, false, 'geo-alt');
+        $room_menu[] = toolbar_dropdown_item(room_link($room), $room->name, false, 'pin-map-fill');
     }
     if (count($room_menu) > 0) {
-        $menu[] = toolbar_dropdown('map-marker', __('Rooms'), $room_menu);
+        $menu[] = toolbar_dropdown(__('Rooms'), $room_menu);
     }
     return $menu;
 }
@@ -212,7 +182,7 @@ function make_language_select()
 
     $items = [];
     foreach (config('locales') as $locale => $name) {
-        $url = url($request->getPathInfo(), ['set-locale' => $locale]);
+        $url = url($request->getPathInfo(), [...$request->getQueryParams(), 'set-locale' => $locale]);
 
         $items[] = toolbar_dropdown_item(
             htmlspecialchars($url),

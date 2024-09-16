@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Database\Factories\Engelsystem\Models\User;
 
 use Carbon\Carbon;
@@ -9,17 +11,14 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 class StateFactory extends Factory
 {
     /** @var string */
-    protected $model = State::class;
+    protected $model = State::class; // phpcs:ignore
 
-    /**
-     * @return array
-     */
-    public function definition()
+    public function definition(): array
     {
         $arrival = $this->faker->optional()->dateTimeThisMonth();
 
         return [
-            'arrived'      => (bool)$arrival,
+            'arrived'      => (bool) $arrival,
             'arrival_date' => $arrival ? Carbon::instance($arrival) : null,
             'active'       => $this->faker->boolean(.3),
             'force_active' => $this->faker->boolean(.1),
@@ -30,10 +29,8 @@ class StateFactory extends Factory
 
     /**
      * Indicate that the user is arrived
-     *
-     * @return self
      */
-    public function arrived()
+    public function arrived(): self
     {
         return $this->state(
             function (array $attributes) {

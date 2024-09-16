@@ -13,14 +13,10 @@ use Engelsystem\Models\User\User;
 class NewsTest extends ModelTest
 {
     /** @var array */
-    private $newsData;
+    private array $newsData;
 
-    /** @var User */
-    private $user;
+    private User $user;
 
-    /**
-     * @return void
-     */
     protected function setUp(): void
     {
         parent::setUp();
@@ -29,7 +25,7 @@ class NewsTest extends ModelTest
         $this->newsData = [
             'title'   => 'test title',
             'text'    => 'test text',
-            'user_id' => $this->user->id
+            'user_id' => $this->user->id,
         ];
     }
 

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Database\Factories\Engelsystem\Models;
 
 use Engelsystem\Models\User\User;
@@ -9,12 +11,9 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 class WorklogFactory extends Factory
 {
     /** @var string */
-    protected $model = Worklog::class;
+    protected $model = Worklog::class; // phpcs:ignore
 
-    /**
-     * @return array
-     */
-    public function definition()
+    public function definition(): array
     {
         return [
             'user_id'    => User::factory(),

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Controllers\Metrics;
 
 use Engelsystem\Controllers\Metrics\MetricsEngine;
@@ -15,7 +17,7 @@ class MetricsEngineTest extends TestCase
      * @covers \Engelsystem\Controllers\Metrics\MetricsEngine::renderLabels
      * @covers \Engelsystem\Controllers\Metrics\MetricsEngine::renderValue
      */
-    public function testGet()
+    public function testGet(): void
     {
         $engine = new MetricsEngine();
 
@@ -60,7 +62,7 @@ class MetricsEngineTest extends TestCase
      * @covers \Engelsystem\Controllers\Metrics\MetricsEngine::formatHistogram
      * @covers \Engelsystem\Controllers\Metrics\MetricsEngine::get
      */
-    public function testGetHistogram()
+    public function testGetHistogram(): void
     {
         $engine = new MetricsEngine();
 
@@ -75,7 +77,7 @@ engelsystem_test_minimum_histogram_count 4
 EOD,
             $engine->get('/metrics', [
                 'test_minimum_histogram' => [
-                    'type'  => 'histogram', [3 => 4, 'sum' => 1.337]
+                    'type'  => 'histogram', [3 => 4, 'sum' => 1.337],
                 ],
             ])
         );
@@ -94,7 +96,7 @@ EOD,
             $engine->get('/metrics', [
                 'test_short_histogram' => [
                     'type'  => 'histogram',
-                    'value' => [120 => 19, '+Inf' => 300, 60 => 10, 0 => 0, 'sum' => 123.456]
+                    'value' => [120 => 19, '+Inf' => 300, 60 => 10, 0 => 0, 'sum' => 123.456],
                 ],
             ])
         );
@@ -132,7 +134,7 @@ engelsystem_test_minimum_histogram_count NaN
 EOD,
             $engine->get('/metrics', [
                 'test_minimum_histogram' => [
-                    'type'  => 'histogram', []
+                    'type'  => 'histogram', [],
                 ],
             ])
         );
@@ -141,7 +143,7 @@ EOD,
     /**
      * @covers \Engelsystem\Controllers\Metrics\MetricsEngine::canRender
      */
-    public function testCanRender()
+    public function testCanRender(): void
     {
         $engine = new MetricsEngine();
 
@@ -153,7 +155,7 @@ EOD,
     /**
      * @covers \Engelsystem\Controllers\Metrics\MetricsEngine::share
      */
-    public function testShare()
+    public function testShare(): void
     {
         $engine = new MetricsEngine();
 

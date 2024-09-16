@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Http;
 
 use Engelsystem\Http\Request;
@@ -17,7 +19,7 @@ class RequestTest extends TestCase
     /**
      * @covers \Engelsystem\Http\Request
      */
-    public function testCreate()
+    public function testCreate(): void
     {
         $response = new Request();
         $this->assertInstanceOf(SymfonyRequest::class, $response);
@@ -27,7 +29,7 @@ class RequestTest extends TestCase
     /**
      * @covers \Engelsystem\Http\Request::postData
      */
-    public function testPostData()
+    public function testPostData(): void
     {
         $request = new Request(
             ['foo' => 'I\'m a test!'],
@@ -41,7 +43,7 @@ class RequestTest extends TestCase
     /**
      * @covers \Engelsystem\Http\Request::input
      */
-    public function testInput()
+    public function testInput(): void
     {
         $request = new Request(
             ['foo' => 'I\'m a test!'],
@@ -55,7 +57,7 @@ class RequestTest extends TestCase
     /**
      * @covers \Engelsystem\Http\Request::has
      */
-    public function testHas()
+    public function testHas(): void
     {
         $request = new Request([
             'foo' => 'I\'m a test!',
@@ -70,7 +72,7 @@ class RequestTest extends TestCase
     /**
      * @covers \Engelsystem\Http\Request::hasPostData
      */
-    public function testHasPostData()
+    public function testHasPostData(): void
     {
         $request = new Request([
             'foo' => 'bar',
@@ -88,7 +90,7 @@ class RequestTest extends TestCase
     /**
      * @covers \Engelsystem\Http\Request::path
      */
-    public function testPath()
+    public function testPath(): void
     {
         /** @var Request|MockObject $request */
         $request = $this
@@ -111,7 +113,7 @@ class RequestTest extends TestCase
     /**
      * @covers \Engelsystem\Http\Request::url
      */
-    public function testUrl()
+    public function testUrl(): void
     {
         /** @var Request|MockObject $request */
         $request = $this
@@ -134,7 +136,7 @@ class RequestTest extends TestCase
     /**
      * @covers \Engelsystem\Http\Request::getRequestTarget
      */
-    public function testGetRequestTarget()
+    public function testGetRequestTarget(): void
     {
         /** @var Request|MockObject $request */
         $request = $this
@@ -156,7 +158,7 @@ class RequestTest extends TestCase
     /**
      * @covers \Engelsystem\Http\Request::withRequestTarget
      */
-    public function testWithRequestTarget()
+    public function testWithRequestTarget(): void
     {
         $request = new Request();
         foreach (
@@ -174,7 +176,7 @@ class RequestTest extends TestCase
     /**
      * @covers \Engelsystem\Http\Request::withMethod
      */
-    public function testWithMethod()
+    public function testWithMethod(): void
     {
         $request = new Request();
 
@@ -187,7 +189,7 @@ class RequestTest extends TestCase
     /**
      * @covers \Engelsystem\Http\Request::withUri
      */
-    public function testWithUri()
+    public function testWithUri(): void
     {
         /** @var UriInterface|MockObject $uri */
         $uri = $this->getMockForAbstractClass(UriInterface::class);
@@ -209,7 +211,7 @@ class RequestTest extends TestCase
     /**
      * @covers \Engelsystem\Http\Request::getServerParams
      */
-    public function testGetServerParams()
+    public function testGetServerParams(): void
     {
         $server = ['foo' => 'bar'];
         $request = new Request([], [], [], [], [], $server);
@@ -220,7 +222,7 @@ class RequestTest extends TestCase
     /**
      * @covers \Engelsystem\Http\Request::getCookieParams
      */
-    public function testGetCookieParams()
+    public function testGetCookieParams(): void
     {
         $cookies = ['session' => 'LoremIpsumDolorSit'];
         $request = new Request([], [], [], $cookies);
@@ -231,7 +233,7 @@ class RequestTest extends TestCase
     /**
      * @covers \Engelsystem\Http\Request::withCookieParams
      */
-    public function testWithCookieParams()
+    public function testWithCookieParams(): void
     {
         $cookies = ['lor' => 'em'];
         $request = new Request();
@@ -245,7 +247,7 @@ class RequestTest extends TestCase
     /**
      * @covers \Engelsystem\Http\Request::getQueryParams
      */
-    public function testGetQueryParams()
+    public function testGetQueryParams(): void
     {
         $params = ['foo' => 'baz'];
         $request = new Request($params);
@@ -256,7 +258,7 @@ class RequestTest extends TestCase
     /**
      * @covers \Engelsystem\Http\Request::withQueryParams
      */
-    public function testWithQueryParams()
+    public function testWithQueryParams(): void
     {
         $params = ['test' => 'ing'];
         $request = new Request();
@@ -270,7 +272,7 @@ class RequestTest extends TestCase
     /**
      * @covers \Engelsystem\Http\Request::getUploadedFiles
      */
-    public function testGetUploadedFiles()
+    public function testGetUploadedFiles(): void
     {
         $filename = tempnam(sys_get_temp_dir(), 'test');
         file_put_contents($filename, 'LoremIpsum!');
@@ -292,7 +294,7 @@ class RequestTest extends TestCase
     /**
      * @covers \Engelsystem\Http\Request::withUploadedFiles
      */
-    public function testWithUploadedFiles()
+    public function testWithUploadedFiles(): void
     {
         $filename = tempnam(sys_get_temp_dir(), 'test');
         file_put_contents($filename, 'LoremIpsum!');
@@ -314,7 +316,7 @@ class RequestTest extends TestCase
     /**
      * @covers \Engelsystem\Http\Request::getParsedBody
      */
-    public function testGetParsedBody()
+    public function testGetParsedBody(): void
     {
         $body = ['foo' => 'lorem'];
         $request = new Request();
@@ -326,7 +328,7 @@ class RequestTest extends TestCase
     /**
      * @covers \Engelsystem\Http\Request::withParsedBody
      */
-    public function testWithParsedBody()
+    public function testWithParsedBody(): void
     {
         $data = ['test' => 'er'];
         $request = new Request();
@@ -340,7 +342,7 @@ class RequestTest extends TestCase
     /**
      * @covers \Engelsystem\Http\Request::getAttributes
      */
-    public function testGetAttributes()
+    public function testGetAttributes(): void
     {
         $attributes = ['foo' => 'lorem', 'ipsum' => 'dolor'];
         $request = new Request([], [], $attributes);
@@ -351,7 +353,7 @@ class RequestTest extends TestCase
     /**
      * @covers \Engelsystem\Http\Request::getAttribute
      */
-    public function testGetAttribute()
+    public function testGetAttribute(): void
     {
         $attributes = ['foo' => 'lorem', 'ipsum' => 'dolor'];
         $request = new Request([], [], $attributes);
@@ -364,7 +366,7 @@ class RequestTest extends TestCase
     /**
      * @covers \Engelsystem\Http\Request::withAttribute
      */
-    public function testWithAttribute()
+    public function testWithAttribute(): void
     {
         $request = new Request();
 
@@ -377,7 +379,7 @@ class RequestTest extends TestCase
     /**
      * @covers \Engelsystem\Http\Request::withoutAttribute
      */
-    public function testWithoutAttribute()
+    public function testWithoutAttribute(): void
     {
         $attributes = ['foo' => 'lorem', 'ipsum' => 'dolor'];
         $request = new Request([], [], $attributes);

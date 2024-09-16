@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Engelsystem\Test\Unit\Middleware;
 
 use Engelsystem\Helpers\Authenticator;
@@ -23,7 +25,7 @@ class SetLocaleTest extends TestCase
      * @covers \Engelsystem\Middleware\SetLocale::__construct
      * @covers \Engelsystem\Middleware\SetLocale::process
      */
-    public function testRegister()
+    public function testRegister(): void
     {
         $this->initDatabase();
 
